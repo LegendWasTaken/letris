@@ -29,4 +29,16 @@ FetchContent_Declare(
         GIT_TAG 7.1.3
 )
 
-FetchContent_MakeAvailable(glfw glm sockpp fmt)
+FetchContent_Declare(
+        fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt
+        GIT_TAG 7.1.3
+)
+
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.10.2
+)
+
+FetchContent_MakeAvailable(glfw glm sockpp fmt json)

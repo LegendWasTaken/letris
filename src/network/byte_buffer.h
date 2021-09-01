@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <cstddef>
-#include <span>
 
 namespace let::network
 {
@@ -15,7 +14,7 @@ namespace let::network
 
     void write_byte(std::byte byte);
 
-    void write_bytes(std::span<std::byte> bytes);
+    void write_bytes(std::byte* bytes, size_t count);
 
     void clear();
 

@@ -26,19 +26,41 @@ namespace let
   public:
     std::int32_t val;
 
+    var_int() = default;
+
     explicit var_int(std::int32_t val) : val(val)
     {}
 
-    operator std::int32_t() const noexcept
+    explicit operator std::int32_t() const noexcept
     {
       return val;
     }
+
+    [[nodiscard]] std::int32_t length() const noexcept
+    {
+        auto u_value = std::uint32_t(static_cast<std::int32_t>(val));
+
+        auto times = 0;
+        do
+        {
+            auto temp = static_cast<std::uint8_t>(u_value & 0b01111111);
+            u_value >>= 7;
+
+            if (u_value != 0)
+                temp |= 0b10000000;
+            times++;
+        } while (u_value != 0);
+        return times;
+    }
+
   };
 
   class var_long
   {
   public:
     std::int64_t val;
+
+    var_long() = default;
 
     explicit var_long(std::int64_t val) : val(val)
     {}
@@ -47,6 +69,23 @@ namespace let
     {
       return val;
     }
+
+      [[nodiscard]] std::int32_t length() const noexcept
+      {
+          auto u_value = std::uint32_t(static_cast<std::int32_t>(val));
+
+          auto times = 0;
+          do
+          {
+              auto temp = static_cast<std::uint8_t>(u_value & 0b01111111);
+              u_value >>= 7;
+
+              if (u_value != 0)
+                  temp |= 0b10000000;
+              times++;
+          } while (u_value != 0);
+          return times;
+      }
   };
 
   class UUID final

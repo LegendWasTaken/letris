@@ -1,43 +1,30 @@
 #include <network/socket.h>
 
-int main()
-{
-  sockpp::socket_initializer sockInit;
-  auto socket = let::network::socket("localhost", 25565);
+int main() {
+    sockpp::socket_initializer sockInit;
+    auto socket = let::network::socket("localhost", 25565);
 
-  auto test_buffer = let::network::byte_buffer(1024);
+    auto test_buffer = let::network::byte_buffer(1024);
 
-  let::packets::write<let::packets::state::status>::request(test_buffer);
-  const auto result = socket.send(test_buffer);
-  test_buffer.clear();
-  fmt::print("Result: {}", result);
+    let::packets::write<let::packets::state::handshaking>::handshake(test_buffer, let::packets::handshake_state::status, 25565, "127.0.0.1");
+    auto result = socket.send(test_buffer);
+    let::packets::write<let::packets::state::status>::request(test_buffer);
+    result = socket.send(test_buffer);
 
-  const auto wait = socket.receive(test_buffer);
-  const auto test = 5;
+    while (!socket.receive(test_buffer))
+    {
+    }
 
-//  glfwSetErrorCallback([](int error, const char *description) {
-//    std::cerr << "GLFW Error: " << description << std::endl;
-//  });
-//
-//  glfwInit();
-//
-//  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-//  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-//  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-//
-//  const auto window = glfwCreateWindow(1920, 1080, "Letris", nullptr, nullptr);
-//
-//  glfwMakeContextCurrent(window);
-//  gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-//
-//  while (!glfwWindowShouldClose(window))
-//  {
-//    glfwPollEvents();
-//
-//    glClearColor(1, 1, 1, 1);
-//    glClear(GL_COLOR_BUFFER_BIT);
-//
-//    glfwSwapBuffers(window);
-//  }
-  return 0;
+    auto response = let::packets::read<let::packets::state::status>::response(test_buffer);
+
+    let::packets::write<let::packets::state::status>::ping(test_buffer, 1024);
+    result = socket.send(test_buffer);
+
+    while (!socket.receive(test_buffer))
+    {
+    }
+
+    auto pong = let::packets::read<let::packets::state::status>::pong(test_buffer);
+
+    return 0;
 }

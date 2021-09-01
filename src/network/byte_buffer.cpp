@@ -12,12 +12,12 @@ void let::network::byte_buffer::write_byte(std::byte byte)
   _data.push_back(byte);
 }
 
-void let::network::byte_buffer::write_bytes(std::span<std::byte> bytes)
+void let::network::byte_buffer::write_bytes(std::byte* bytes, size_t count)
 {
-  _ensure_capacity(bytes.size());
+  _ensure_capacity(count);
 
-  for (auto val : bytes)
-    _data.push_back(val);
+  for (auto i = 0; i < count; i++)
+    _data.push_back(bytes[i]);
 }
 
 void let::network::byte_buffer::clear()
@@ -41,7 +41,7 @@ std::vector<std::byte> let::network::byte_buffer::_next_bytes(std::size_t byte_c
   auto result = std::vector<std::byte>(byte_count);
 
   for (std::size_t i = 0; i < byte_count; i++)
-    result.push_back(_data[_read_head++]);
+    result[i] = _data[_read_head++];
 
   return std::move(result);
 }

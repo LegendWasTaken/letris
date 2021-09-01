@@ -109,7 +109,7 @@ namespace let::network::encoder
 
   inline void write(let::network::byte_buffer &buffer, let::var_long value)
   {
-    auto u_value = std::uint32_t(static_cast<int>(value));
+    auto u_value = std::uint32_t(static_cast<std::uint64_t>(value));
 
     do
     {
@@ -127,7 +127,7 @@ namespace let::network::encoder
   {
     write(buffer, let::var_int(value.length()));
     for (const auto &element : value)
-      write(buffer, element);
+      write(buffer, static_cast<std::uint8_t>(element));
   }
 
   inline void write(let::network::byte_buffer &buffer, let::UUID value)
