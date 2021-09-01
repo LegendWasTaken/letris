@@ -1,5 +1,14 @@
 #include "packets.h"
 
+let::packets::reader::packet_header let::packets::reader::peek_header(let::network::byte_buffer &buffer) {
+    auto header = packet_header();
+    const auto count = buffer.size();
+    let::network::decoder::read(buffer, header.length);
+    let::network::decoder::read(buffer, header.id);
+    buffer.step_back(count - buffer.size());
+    return header;
+}
+
 let::packets::reader::packet_header let::packets::reader::read_header(let::network::byte_buffer &buffer) {
     auto header = packet_header();
     let::network::decoder::read(buffer, header.length);
@@ -32,7 +41,7 @@ let::packets::read<let::packets::state::status>::response(let::network::byte_buf
     auto json_str = std::string();
     let::network::decoder::read(buffer, json_str);
 
-    auto json = nlohmann::json::parse(json_str.begin(), json_str.end());
+    const auto json = nlohmann::json::parse(json_str.begin(), json_str.end());
 
     json.at("version").at("name").get_to(response.version.name);
     json.at("players").at("max").get_to(response.players.players_max);
@@ -49,6 +58,35 @@ let::packets::read<let::packets::state::status>::pong(let::network::byte_buffer 
 
     let::network::decoder::read(buffer, pong.payload);
     return pong;
+}
+
+void let::packets::write<let::packets::state::login>::login_start(let::network::byte_buffer &buffer,
+                                                                  const std::string &name) {
+
+    const auto packet_length = let::var_int(name.size()).length() + name.size() + 1;
+
+    write_header(buffer, packet_length, 0x00);
+    let::network::encoder::write(buffer, name);
+}
+
+let::packets::read<let::packets::state::login>::login_success_packet
+let::packets::read<let::packets::state::login>::login_success(let::network::byte_buffer &buffer) {
+    auto login_success = login_success_packet();
+    login_success.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, login_success.uuid);
+    let::network::decoder::read(buffer, login_success.username);
+    return login_success;
+}
+
+let::packets::read<let::packets::state::login>::set_compression_packet
+let::packets::read<let::packets::state::login>::set_compression(let::network::byte_buffer &buffer) {
+    auto set_compression = set_compression_packet();
+
+    set_compression.header = read_header(buffer);
+    let::network::decoder::read(buffer, set_compression.threshold);
+
+    return set_compression;
 }
 
 void let::packets::write<let::packets::state::handshaking>::handshake(let::network::byte_buffer &buffer,

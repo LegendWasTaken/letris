@@ -20,6 +20,10 @@ void let::network::byte_buffer::write_bytes(std::byte* bytes, size_t count)
     _data.push_back(bytes[i]);
 }
 
+void let::network::byte_buffer::step_back(size_t count) {
+    _read_head -= count;
+}
+
 void let::network::byte_buffer::clear()
 {
   _data.clear();
@@ -31,12 +35,16 @@ void let::network::byte_buffer::_ensure_capacity(std::size_t capacity)
   _data.reserve(_data.capacity() + capacity);
 }
 
+std::byte let::network::byte_buffer::peek_byte() {
+    return _data[_read_head];
+}
+
 std::byte let::network::byte_buffer::next_byte()
 {
   return _data[_read_head++];
 }
 
-std::vector<std::byte> let::network::byte_buffer::_next_bytes(std::size_t byte_count)
+std::vector<std::byte> let::network::byte_buffer::next_bytes(std::size_t byte_count)
 {
   auto result = std::vector<std::byte>(byte_count);
 

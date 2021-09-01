@@ -11,19 +11,24 @@
 #include <network/packets.h>
 #include <network/byte_buffer.h>
 
-namespace let::network
-{
-  class socket
-  {
-  public:
-    socket(const std::string &host, std::uint16_t port);
+namespace let::network {
+    class socket {
+    public:
+        socket() = default;
 
-    [[nodiscard]] bool send(let::network::byte_buffer &data);
+        socket(const std::string &host, std::uint16_t port);
 
-    [[nodiscard]] bool receive(let::network::byte_buffer &data);
-  private:
-    let::packets::state _state;
+        void send(let::network::byte_buffer &data);
 
-    sockpp::tcp_connector _socket;
-  };
+        void receive(let::network::byte_buffer &data);
+
+        void disconnect();
+
+        [[nodiscard]] bool connected() const noexcept;
+
+        [[nodiscard]] bool open() const noexcept;
+
+    private:
+        sockpp::tcp_connector _socket;
+    };
 }

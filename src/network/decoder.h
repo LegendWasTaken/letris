@@ -119,7 +119,7 @@ namespace let::network::decoder
     auto length = static_cast<std::int32_t>(var);
     if (length < 0 || length > 32767) throw std::runtime_error("String size is impossible");
 
-    auto data = buffer._next_bytes(length);
+    auto data = buffer.next_bytes(length);
 
     auto string = std::string();
     string.resize(length, '\0');

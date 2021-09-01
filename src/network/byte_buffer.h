@@ -18,9 +18,13 @@ namespace let::network
 
     void clear();
 
+    void step_back(size_t count);
+
+    [[nodiscard]] std::byte peek_byte();
+
     [[nodiscard]] std::byte next_byte();
 
-    [[nodiscard]] std::vector<std::byte> _next_bytes(std::size_t byte_count);
+    [[nodiscard]] std::vector<std::byte> next_bytes(std::size_t byte_count);
 
     [[nodiscard]] std::size_t size() const noexcept;
 

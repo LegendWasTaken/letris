@@ -2,6 +2,7 @@
 
 #include <string>
 #include <numeric>
+#include <variant>
 
 #include <network/byte_buffer.h>
 
@@ -15,6 +16,52 @@ namespace let::packets {
         play, status, login, handshaking,
     };
 
+    namespace play {
+
+    }
+
+    namespace status {
+        struct response {
+            struct {
+                std::string name;
+            } version{};
+
+            struct {
+                std::uint32_t players_max;
+                std::uint32_t online;
+            } players{};
+
+            struct {
+                std::string text;
+            } description{};
+        };
+
+        struct pong {
+            std::int64_t payload;
+        };
+    }
+
+
+    namespace login {
+
+    }
+
+    namespace handshaking {
+
+    }
+
+    struct header {
+        let::var_int length;
+        let::var_int id;
+    };
+
+    struct packet {
+        packets::header header;
+        std::variant<
+                status::response,
+                status::pong> payload;
+    };
+
     enum class handshake_state {
         status = 0x01,
         login = 0x02
@@ -25,18 +72,19 @@ namespace let::packets {
     };
 
     class reader {
-    protected:
+    public:
         struct packet_header {
             let::var_int length;
             let::var_int id;
         };
 
-        [[nodiscard]] static packet_header read_header(let::network::byte_buffer &buffer);
+        [[nodiscard]] static packet_header peek_header(let::network::byte_buffer &buffer);
 
-    public:
         struct incoming_packet {
             packet_header header;
         };
+    protected:
+        [[nodiscard]] static packet_header read_header(let::network::byte_buffer &buffer);
     };
 
     template<state State>
@@ -102,22 +150,30 @@ namespace let::packets {
 
     template<>
     class write<state::login> : public writer {
+    public:
+        static void login_start(let::network::byte_buffer &buffer, const std::string &name);
+    };
+
+    template<>
+    class read<state::login> : public reader {
+    public:
+        struct login_success_packet : public read::incoming_packet {
+            std::string uuid;
+            std::string username;
+        };
+
+        [[nodiscard]] static login_success_packet login_success(let::network::byte_buffer &buffer);
+
+        struct set_compression_packet : public read::incoming_packet {
+            let::var_int threshold;
+        };
+        [[nodiscard]] static set_compression_packet set_compression(let::network::byte_buffer &buffer);
 
     };
 
     template<>
     class write<state::handshaking> : public writer {
     public:
-        struct handshake_data {
-            enum class state {
-                status = 0x01,
-                login = 0x02
-            };
-
-            handshake_data::state next_state;
-            std::uint16_t port;
-            std::string host;
-        };
 
         static void handshake(let::network::byte_buffer &buffer, const handshake_state state, const std::uint16_t port,
                               const std::string &address);

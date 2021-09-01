@@ -20,9 +20,10 @@ add_executable(Letris
         # Glad.c
         external/glad/glad.c
 
+        # Main
         src/main.cpp
-        src/game.cpp src/game.h
-        src/components.h
+
+        # Network
         src/network/byte_buffer.cpp
         src/network/byte_buffer.h
         src/network/socket.cpp
@@ -32,7 +33,9 @@ add_executable(Letris
         src/network/types.cpp
         src/network/packets.h
         src/network/packets.cpp
-        src/network/encoder.h src/util/byte_buffer.h)
+        src/network/encoder.h
+
+        src/network/query_manager.cpp src/network/query_manager.h src/network/game_network.cpp src/network/game_network.h)
 
 target_include_directories(Letris PRIVATE external src)
 target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json)
