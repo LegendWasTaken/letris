@@ -36,12 +36,12 @@ namespace
 
 }
 
-let::UUID let::UUID::from_string(std::string_view string)
+let::uuid let::uuid::from_string(std::string_view string)
 {
-  if (string.length() != 36) return let::UUID::invalid();
+  if (string.length() != 36) return let::uuid::invalid();
 
   if (string[8] != '-' || string[13] != '-' || string[18] != '-' || string[23] != '-')
-    return let::UUID::invalid();
+    return let::uuid::invalid();
 
   std::int8_t bytes[16];
 
@@ -59,42 +59,42 @@ let::UUID let::UUID::from_string(std::string_view string)
 
     const std::int8_t most_sig_bits = htod(string[i]);
     const std::int8_t least_sig_bits = htod(string[i + 1]);
-    if (most_sig_bits == -1 || least_sig_bits == -1) return let::UUID::invalid();
+    if (most_sig_bits == -1 || least_sig_bits == -1) return let::uuid::invalid();
 
     bytes[byte_index++] = (most_sig_bits << 4) | least_sig_bits;
   }
 
-  if (hyphen_count != 4) return UUID::invalid();
+  if (hyphen_count != 4) return uuid::invalid();
 
   std::uint64_t most_sig_bits, least_sig_bits;
   std::memcpy(&most_sig_bits, bytes, 8);
   std::memcpy(&least_sig_bits, bytes + 8, 8);
 
-  return UUID(most_sig_bits, least_sig_bits);
+  return uuid(most_sig_bits, least_sig_bits);
 }
 
-let::UUID::UUID(
+let::uuid::uuid(
         uint64_t most_sig,
         uint64_t least_sig) noexcept: _most_sig_bits(most_sig), _least_sig_bits(least_sig)
 {
 }
 
-bool let::UUID::operator==(const let::UUID &other) noexcept
+bool let::uuid::operator==(const let::uuid &other) noexcept
 {
   return _most_sig_bits == other._most_sig_bits && _least_sig_bits == other._least_sig_bits;
 }
 
-uint64_t let::UUID::most_significant_bits() const noexcept
+uint64_t let::uuid::most_significant_bits() const noexcept
 {
   return _most_sig_bits;
 }
 
-uint64_t let::UUID::least_significant_bits() const noexcept
+uint64_t let::uuid::least_significant_bits() const noexcept
 {
   return _least_sig_bits;
 }
 
-std::string let::UUID::to_string() const
+std::string let::uuid::to_string() const
 {
   std::int8_t hex[32];
   u_long_to_hex(_least_sig_bits, hex);
@@ -110,7 +110,7 @@ std::string let::UUID::to_string() const
   return result;
 }
 
-bool let::UUID::valid() const noexcept
+bool let::uuid::valid() const noexcept
 {
   return _most_sig_bits != 0 && _least_sig_bits != 0;
 }

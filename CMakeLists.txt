@@ -35,7 +35,7 @@ add_executable(Letris
         src/network/packets.cpp
         src/network/encoder.h
 
-        src/network/query_manager.cpp src/network/query_manager.h src/network/game_network.cpp src/network/game_network.h)
+        src/network/query_manager.cpp src/network/query_manager.h src/network/game_network.cpp src/network/game_network.h src/network/nbt.cpp src/network/nbt.h src/world/chunk/chunk.cpp src/world/chunk/chunk.h)
 
 target_include_directories(Letris PRIVATE external src)
-target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json)
+target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib)

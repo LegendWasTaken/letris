@@ -51,17 +51,20 @@ namespace let::network {
         void _process();
     private:
 
-        void _handle_connecting_packets(let::network::byte_buffer &buffer);
-        void _handle_connected_packets(let::network::byte_buffer &buffer);
+        void _handle_connecting_packet(let::network::byte_buffer &buffer);
+        void _handle_connected_packet(let::network::byte_buffer &buffer);
+
+        void decompress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target);
 
         std::atomic<bool> _processing;
         std::thread _processing_thread;
+
+        std::int32_t _compression_threshold;
 
         connection_status _status;
         let::network::socket _server_socket;
 
         let::network::byte_buffer _incoming;
         let::network::byte_buffer _outgoing;
-
     };
 }
