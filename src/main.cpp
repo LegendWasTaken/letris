@@ -1,16 +1,91 @@
-#include <network/game_network.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
+#include <game/game.h>
 
 int main() {
-    sockpp::socket_initializer sockInit;
+    /*
+     * Some of the libraries I use aren't perfect, and require some type of initialization
+     * at the start of sorts. While I could abstract this into the classes, and in the ctor,
+     * I would rather do it once here, in a place that is very obvious.
+     *
+     * Current libraries used and why static initialization is required
+     * - Sockets, windows / unix stuff
+     * - Ultralight, follows singleton pattern. Abstraction removes this pattern, but a result
+     *               is needing to have this static initialization here
+     * - GLFW / GLAD, Need static initialization, problem is GLAD needs to be initialized
+     *                after the first window is created. So there is some code needed to be
+     *                inside of the class logic
+     */
 
-    auto game_network = let::network::game();
-    game_network.connect("127.0.0.1", 25565);
+    // Initialize the socket library
+    sockpp::socket_initializer sockInit {};
 
-    while (true)
-        game_network._process();
+    // Initialize GLFW and GLAD
+    let::window_init windowInit {};
+
+    // Initialize Ultralight and create a renderer to use
+    let::ultralight_init ultralightInit {};
+
+    auto ultralight_renderer = ultralight::Renderer::Create();
+
+    auto user_input_renderer = let::user_input_renderer(&ultralight_renderer, {1920, 1080});
+
+    auto test_screen = let::test_screen();
+
+    user_input_renderer.use(&test_screen);
+
+    auto window = let::window(1920, 1080, "Test");
+
+    auto texture = GLuint();
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    window.set_texture_callback([&window, &user_input_renderer, texture](){
+
+        const auto mouse = window.mouse();
+
+        const auto keyboard = window.keyboard();
+
+        user_input_renderer.update({
+            .mouse = mouse,
+            .keyboard = keyboard
+        });
+
+        user_input_renderer.render();
+
+        user_input_renderer.read_into(texture);
+
+        return texture;
+    });
+
+    while (!window.should_close())
+    {
+        window.display_frame();
+    }
+
+
+//    auto game_network = let::network::game();
+//    game_network.connect("127.0.0.1", 25565);
+
+//    while (true)
+//        game_network._process();
+
+//    auto game_network = let::network::game();
+
+//    auto game = let::game_builder()
+//            .with_network(game_network)
+//            .with_window(window)
+//            .with_ui_renderer(user_input_renderer)
+//            .build();
+
+//    game.start();
 
     /*
-
     auto network_manager = let::network_manager();
 
     auto world = let::world();

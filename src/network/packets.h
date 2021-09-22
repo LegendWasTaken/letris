@@ -56,7 +56,82 @@ namespace let::packets {
 
     template<>
     class write<state::play> : public writer {
+    public:
+        [[nodiscard]] static void keep_alive(let::network::byte_buffer &buffer, let::var_int id);
 
+
+        [[nodiscard]] static void chat_message(let::network::byte_buffer &buffer, const std::string &message);
+
+
+        [[nodiscard]] static void use_entity(let::network::byte_buffer &buffer, let::var_int target, let::var_int type, std::optional<glm::vec3> target_pos);
+
+
+        [[nodiscard]] static void player(let::network::byte_buffer &buffer, bool on_ground);
+
+
+        [[nodiscard]] static void player_position(let::network::byte_buffer &buffer, double x, double feet_y, double z, bool on_ground);
+
+
+        [[nodiscard]] static void player_look(let::network::byte_buffer &buffer, float yaw, float pitch, bool on_ground);
+
+
+        [[nodiscard]] static void player_position_and_look(let::network::byte_buffer &buffer, double x, double feet_y, double z, float yaw, float pitch, bool on_ground);
+
+
+        [[nodiscard]] static void player_digging(let::network::byte_buffer &buffer, std::byte status, glm::ivec3 position, std::byte face);
+
+
+        [[nodiscard]] static void player_block_placement(let::network::byte_buffer &buffer, glm::ivec3 pos, std::byte face, let::slot item, std::byte cursor_x, std::byte cursor_y, std::byte cursor_z);
+
+
+        [[nodiscard]] static void held_item_change(let::network::byte_buffer &buffer, std::int16_t slot);
+
+
+        [[nodiscard]] static void animation(let::network::byte_buffer &buffer);
+
+
+        [[nodiscard]] static void entity_action(let::network::byte_buffer &buffer, let::var_int entity, let::var_int action, let::var_int action_parameter);
+
+
+        [[nodiscard]] static void steer_vehicle(let::network::byte_buffer &buffer, float sideways, float forward, std::uint8_t flags);
+
+
+        [[nodiscard]] static void close_window(let::network::byte_buffer &buffer, std::uint8_t window_id);
+
+
+        [[nodiscard]] static void click_window(let::network::byte_buffer &buffer);
+
+
+        [[nodiscard]] static void confirm_transaction(let::network::byte_buffer &buffer, std::byte window_id, std::int16_t action_number, bool accepted);
+
+
+        [[nodiscard]] static void creative_inventory_action(let::network::byte_buffer &buffer);
+
+
+        [[nodiscard]] static void enchant_item(let::network::byte_buffer &buffer, std::byte window_id, std::byte enchantment);
+
+
+        [[nodiscard]] static void update_sign(let::network::byte_buffer &buffer);
+
+
+        [[nodiscard]] static void player_abilities(let::network::byte_buffer &buffer, std::byte flags, float flying_speed, float walking_speed);
+
+
+        [[nodiscard]] static void tab_complete(let::network::byte_buffer &buffer, const std::string &text, bool has_pos, std::optional<glm::ivec3> looking_at_block);
+
+
+        [[nodiscard]] static void client_settings(let::network::byte_buffer &buffer, const std::string &locale, std::byte view_distance, std::byte chat_mode, bool chat_colours, std::uint8_t skin_parts);
+
+
+        [[nodiscard]] static void client_status(let::network::byte_buffer &buffer, let::var_int action);
+
+
+        [[nodiscard]] static void plugin_message(let::network::byte_buffer &buffer, const std::string &channel, const std::vector<std::byte> &data);
+
+
+        [[nodiscard]] static void spectate(let::network::byte_buffer &buffer, let::uuid target_player);
+
+        [[nodiscard]] static void resource_pack_status(let::network::byte_buffer &buffer, const std::string &hash, let::var_int result);
     };
 
     template<>
@@ -92,7 +167,7 @@ namespace let::packets {
             std::int64_t time_of_day;
         };
 
-        [[nodiscard]] time_update_packet time_update(let::network::byte_buffer &buffer);
+        [[nodiscard]] static time_update_packet time_update(let::network::byte_buffer &buffer);
 
         struct entity_equipment_packet : public reader::incoming_packet {
             let::var_int entity_id;
@@ -100,13 +175,13 @@ namespace let::packets {
             let::slot item;
         };
 
-        [[nodiscard]] entity_equipment_packet entity_equipment(let::network::byte_buffer &buffer);
+        [[nodiscard]] static entity_equipment_packet entity_equipment(let::network::byte_buffer &buffer);
 
         struct spawn_position_packet : public reader::incoming_packet {
             glm::ivec3 position;
         };
 
-        [[nodiscard]] spawn_position_packet spawn_position(let::network::byte_buffer &buffer);
+        [[nodiscard]] static spawn_position_packet spawn_position(let::network::byte_buffer &buffer);
 
         struct update_health_packet : public reader::incoming_packet {
             float health;
@@ -114,7 +189,7 @@ namespace let::packets {
             float food_saturation;
         };
 
-        [[nodiscard]] update_health_packet update_health(let::network::byte_buffer
+        [[nodiscard]] static update_health_packet update_health(let::network::byte_buffer
                                                          &buffer);
 
         struct respawn_packet : public reader::incoming_packet {
@@ -124,7 +199,7 @@ namespace let::packets {
             std::string level_type;
         };
 
-        [[nodiscard]] respawn_packet respawn(let::network::byte_buffer
+        [[nodiscard]] static respawn_packet respawn(let::network::byte_buffer
                                              &buffer);
 
         struct player_pos_and_look_packet : public reader::incoming_packet {
@@ -136,14 +211,14 @@ namespace let::packets {
             std::byte flags;
         };
 
-        [[nodiscard]] player_pos_and_look_packet player_pos_and_look(let::network::byte_buffer
+        [[nodiscard]] static player_pos_and_look_packet player_pos_and_look(let::network::byte_buffer
                                                                      &buffer);
 
         struct held_item_change_packet : public reader::incoming_packet {
             std::byte slot;
         };
 
-        [[nodiscard]] held_item_change_packet held_item_change(let::network::byte_buffer
+        [[nodiscard]] static held_item_change_packet held_item_change(let::network::byte_buffer
                                                                &buffer);
 
         struct use_bed_packet : public reader::incoming_packet {
@@ -151,7 +226,7 @@ namespace let::packets {
             glm::ivec3 position;
         };
 
-        [[nodiscard]] use_bed_packet use_bed(let::network::byte_buffer
+        [[nodiscard]] static use_bed_packet use_bed(let::network::byte_buffer
                                              &buffer);
 
         struct animation_packet : public reader::incoming_packet {
@@ -159,7 +234,7 @@ namespace let::packets {
             std::uint8_t animation_id;
         };
 
-        [[nodiscard]] animation_packet animation(let::network::byte_buffer
+        [[nodiscard]] static animation_packet animation(let::network::byte_buffer
                                                  &buffer);
 
         struct spawn_player_packet : public reader::incoming_packet {
@@ -173,7 +248,7 @@ namespace let::packets {
             std::int16_t current_item;
         };
 
-        [[nodiscard]] spawn_player_packet spawn_player(let::network::byte_buffer
+        [[nodiscard]] static spawn_player_packet spawn_player(let::network::byte_buffer
                                                        &buffer);
 
         struct collect_item_packet : public reader::incoming_packet {
@@ -181,7 +256,7 @@ namespace let::packets {
             let::var_int collector_id;
         };
 
-        [[nodiscard]] collect_item_packet collect_item(let::network::byte_buffer
+        [[nodiscard]] static collect_item_packet collect_item(let::network::byte_buffer
                                                        &buffer);
 
         struct spawn_object_packet : public reader::incoming_packet {
@@ -198,7 +273,7 @@ namespace let::packets {
             std::optional<std::int16_t> velocity_z;
         };
 
-        [[nodiscard]] spawn_object_packet spawn_object(let::network::byte_buffer
+        [[nodiscard]] static spawn_object_packet spawn_object(let::network::byte_buffer
                                                        &buffer);
 
         struct spawn_mob_packet : public reader::incoming_packet {
@@ -216,7 +291,7 @@ namespace let::packets {
             let::entity_metadata metadata;
         };
 
-        [[nodiscard]] spawn_mob_packet spawn_mob(let::network::byte_buffer
+        [[nodiscard]] static spawn_mob_packet spawn_mob(let::network::byte_buffer
                                                  &buffer);
 
         struct spawn_painting_packet : public reader::incoming_packet {
@@ -226,7 +301,7 @@ namespace let::packets {
             std::uint8_t direction;
         };
 
-        [[nodiscard]] spawn_painting_packet spawn_painting(let::network::byte_buffer
+        [[nodiscard]] static spawn_painting_packet spawn_painting(let::network::byte_buffer
                                                            &buffer);
 
         struct spawn_experience_orb_packet : public reader::incoming_packet {
@@ -237,7 +312,7 @@ namespace let::packets {
             std::int16_t count;
         };
 
-        [[nodiscard]] spawn_experience_orb_packet spawn_experience_orb(let::network::byte_buffer
+        [[nodiscard]] static spawn_experience_orb_packet spawn_experience_orb(let::network::byte_buffer
                                                                        &buffer);
 
         struct entity_velocity_packet : public reader::incoming_packet {
@@ -247,7 +322,7 @@ namespace let::packets {
             std::int16_t z;
         };
 
-        [[nodiscard]] entity_velocity_packet entity_velocity(let::network::byte_buffer
+        [[nodiscard]] static entity_velocity_packet entity_velocity(let::network::byte_buffer
                                                              &buffer);
 
         struct destroy_entities_packet : public reader::incoming_packet {
@@ -255,14 +330,14 @@ namespace let::packets {
             std::vector<let::var_int> entity_ids;
         };
 
-        [[nodiscard]] destroy_entities_packet destroy_entities(let::network::byte_buffer
+        [[nodiscard]] static destroy_entities_packet destroy_entities(let::network::byte_buffer
                                                                &buffer);
 
         struct entity_packet : public reader::incoming_packet {
             let::var_int entity_id;
         };
 
-        [[nodiscard]] entity_packet entity(let::network::byte_buffer
+        [[nodiscard]] static entity_packet entity(let::network::byte_buffer
                                            &buffer);
 
         struct entity_relative_move_packet : public reader::incoming_packet {
@@ -273,7 +348,7 @@ namespace let::packets {
             bool on_ground;
         };
 
-        [[nodiscard]] entity_relative_move_packet entity_relative_move(let::network::byte_buffer
+        [[nodiscard]] static entity_relative_move_packet entity_relative_move(let::network::byte_buffer
                                                                        &buffer);
 
         struct entity_look_packet : public reader::incoming_packet {
@@ -283,7 +358,7 @@ namespace let::packets {
             bool on_ground;
         };
 
-        [[nodiscard]] entity_look_packet entity_look(let::network::byte_buffer
+        [[nodiscard]] static entity_look_packet entity_look(let::network::byte_buffer
                                                      &buffer);
 
         struct entity_look_and_relative_move_packet : public reader::incoming_packet {
@@ -296,7 +371,7 @@ namespace let::packets {
             bool on_ground;
         };
 
-        [[nodiscard]] entity_look_and_relative_move_packet entity_look_and_relative_move(let::network::byte_buffer
+        [[nodiscard]] static entity_look_and_relative_move_packet entity_look_and_relative_move(let::network::byte_buffer
                                                                                          &buffer);
 
         struct entity_teleport_packet : public reader::incoming_packet {
@@ -309,7 +384,7 @@ namespace let::packets {
             bool on_ground;
         };
 
-        [[nodiscard]] entity_teleport_packet entity_teleport(let::network::byte_buffer
+        [[nodiscard]] static entity_teleport_packet entity_teleport(let::network::byte_buffer
                                                              &buffer);
 
         struct entity_head_look_packet : public reader::incoming_packet {
@@ -317,7 +392,7 @@ namespace let::packets {
             let::angle yaw;
         };
 
-        [[nodiscard]] entity_head_look_packet entity_head_look(let::network::byte_buffer
+        [[nodiscard]] static entity_head_look_packet entity_head_look(let::network::byte_buffer
                                                                &buffer);
 
         struct entity_status_packet : public reader::incoming_packet {
@@ -325,7 +400,7 @@ namespace let::packets {
             std::byte entity_status;
         };
 
-        [[nodiscard]] entity_status_packet entity_status(let::network::byte_buffer
+        [[nodiscard]] static entity_status_packet entity_status(let::network::byte_buffer
                                                          &buffer);
 
         struct attach_entity_packet : public reader::incoming_packet {
@@ -334,7 +409,7 @@ namespace let::packets {
             bool leash;
         };
 
-        [[nodiscard]] attach_entity_packet attach_entity(let::network::byte_buffer
+        [[nodiscard]] static attach_entity_packet attach_entity(let::network::byte_buffer
                                                          &buffer);
 
         struct entity_data_packet : public reader::incoming_packet {
@@ -342,7 +417,7 @@ namespace let::packets {
             let::entity_metadata data;
         };
 
-        [[nodiscard]] entity_data_packet entity_data(let::network::byte_buffer
+        [[nodiscard]] static entity_data_packet entity_data(let::network::byte_buffer
                                                      &buffer);
 
         struct entity_effect_packet : public reader::incoming_packet {
@@ -353,7 +428,7 @@ namespace let::packets {
             bool hide_particles;
         };
 
-        [[nodiscard]] entity_effect_packet entity_effect(let::network::byte_buffer
+        [[nodiscard]] static entity_effect_packet entity_effect(let::network::byte_buffer
                                                          &buffer);
 
         struct remove_entity_effect_packet : public reader::incoming_packet {
@@ -361,7 +436,7 @@ namespace let::packets {
             std::byte effect_id;
         };
 
-        [[nodiscard]] remove_entity_effect_packet remove_entity_effect(let::network::byte_buffer
+        [[nodiscard]] static remove_entity_effect_packet remove_entity_effect(let::network::byte_buffer
                                                                        &buffer);
 
         struct set_experience_packet : public reader::incoming_packet {
@@ -370,7 +445,7 @@ namespace let::packets {
             let::var_int total_experience;
         };
 
-        [[nodiscard]] set_experience_packet set_experience(let::network::byte_buffer
+        [[nodiscard]] static set_experience_packet set_experience(let::network::byte_buffer
                                                            &buffer);
 
         struct entity_properties_packet : public reader::incoming_packet {
@@ -393,42 +468,216 @@ namespace let::packets {
             std::vector<property> properties;
         };
 
-        [[nodiscard]] entity_properties_packet entity_properties(let::network::byte_buffer
+        [[nodiscard]] static entity_properties_packet entity_properties(let::network::byte_buffer
                                                                  &buffer);
 
         struct chunk_data_packet : public reader::incoming_packet {
             std::optional<let::world::chunk> chunk;
         };
 
-        [[nodiscard]] chunk_data_packet chunk_data(let::network::byte_buffer
+        [[nodiscard]] static  chunk_data_packet chunk_data(let::network::byte_buffer
                                                    &buffer);
 
-        /*
-        struct _packet : public reader::incoming_packet {
+        struct multi_block_change_packet : public reader::incoming_packet {
         };
-        [[nodiscard]] _packet (let::network::byte_buffer
+        [[nodiscard]] static multi_block_change_packet multi_block_change(let::network::byte_buffer
+                                                                          &buffer);
+
+        struct block_change_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static block_change_packet block_change(let::network::byte_buffer
+                                                              &buffer);
+
+        struct block_action_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static block_action_packet block_action(let::network::byte_buffer
+                                                              &buffer);
+
+        struct block_break_animation_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static block_break_animation_packet block_break_animation(let::network::byte_buffer
+                                                                                &buffer);
+
+        struct map_chunk_bulk_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static map_chunk_bulk_packet map_chunk_bulk(let::network::byte_buffer
+                                                                  &buffer);
+
+        struct explosion_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static explosion_packet explosion(let::network::byte_buffer
+                                                        &buffer);
+
+        struct effect_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static effect_packet effect(let::network::byte_buffer
+                                                  &buffer);
+
+        struct sound_effect_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static sound_effect_packet sound_effect(let::network::byte_buffer
+                                                              &buffer);
+
+        struct particle_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static particle_packet particle(let::network::byte_buffer
+                                                      &buffer);
+
+        struct change_game_state_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static change_game_state_packet change_game_state(let::network::byte_buffer
+                                                                        &buffer);
+
+        struct spawn_global_entity_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static spawn_global_entity_packet spawn_global_entity(let::network::byte_buffer
+                                                                            &buffer);
+
+        struct open_window_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static open_window_packet open_window(let::network::byte_buffer
+                                                            &buffer);
+
+        struct close_window_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static close_window_packet close_window(let::network::byte_buffer
+                                                              &buffer);
+
+        struct set_slot_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static set_slot_packet set_slot(let::network::byte_buffer
+                                                      &buffer);
+
+        struct window_items_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static window_items_packet window_items(let::network::byte_buffer
+                                                              &buffer);
+
+        struct window_property_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static window_property_packet window_property(let::network::byte_buffer
+                                                                    &buffer);
+
+        struct confirm_transaction_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static confirm_transaction_packet confirm_transaction(let::network::byte_buffer
+                                                                            &buffer);
+
+        struct update_sign_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static update_sign_packet update_sign(let::network::byte_buffer
+                                                            &buffer);
+
+        struct map_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static map_packet map(let::network::byte_buffer
+                                            &buffer);
+
+        struct update_block_entity_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static update_block_entity_packet update_block_entity(let::network::byte_buffer
+                                                                            &buffer);
+
+        struct open_sign_editor_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static open_sign_editor_packet open_sign_editor(let::network::byte_buffer
+                                                                      &buffer);
+
+        struct statistics_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static statistics_packet statistics(let::network::byte_buffer
+                                                          &buffer);
+
+        struct player_list_item_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static player_list_item_packet player_list_item(let::network::byte_buffer
+                                                                      &buffer);
+
+        struct player_abilities_packet : public reader::incoming_packet {
+            std::byte flags;
+            float flying_speed;
+            float walking_speed;
+        };
+        [[nodiscard]] static player_abilities_packet player_abilities(let::network::byte_buffer
+                                                                      &buffer);
+
+        struct tab_complete_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static tab_complete_packet tab_complete(let::network::byte_buffer
         &buffer);
 
-        struct _packet : public reader::incoming_packet {
+        struct scoreboard_objective_packet : public reader::incoming_packet {
         };
-        [[nodiscard]] _packet (let::network::byte_buffer
-        &buffer);
+        [[nodiscard]] static scoreboard_objective_packet scoreboard_objective(let::network::byte_buffer
+                                                                              &buffer);
 
-        struct _packet : public reader::incoming_packet {
+        struct update_score_packet : public reader::incoming_packet {
         };
-        [[nodiscard]] _packet (let::network::byte_buffer
-        &buffer);
+        [[nodiscard]] static update_score_packet update_score(let::network::byte_buffer
+                                                              &buffer);
 
-        struct _packet : public reader::incoming_packet {
+        struct display_scoreboard_packet : public reader::incoming_packet {
         };
-        [[nodiscard]] _packet (let::network::byte_buffer
-        &buffer);
+        [[nodiscard]] static display_scoreboard_packet display_scoreboard(let::network::byte_buffer
+                                                                          &buffer);
 
-        struct _packet : public reader::incoming_packet {
+        struct teams_packet : public reader::incoming_packet {
         };
-        [[nodiscard]] _packet (let::network::byte_buffer
-        &buffer);
-*/
+        [[nodiscard]] static teams_packet teams(let::network::byte_buffer
+                                                &buffer);
+
+        struct plugin_message_packet : public reader::incoming_packet {
+            std::string channel;
+            std::vector<std::byte> data;
+        };
+        [[nodiscard]] static plugin_message_packet plugin_message(let::network::byte_buffer
+                                                                  &buffer);
+
+        struct disconnect_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static disconnect_packet disconnect(let::network::byte_buffer
+                                                          &buffer);
+
+        struct server_difficulty_packet : public reader::incoming_packet {
+            std::uint8_t difficulty;
+        };
+        [[nodiscard]] static server_difficulty_packet server_difficulty(let::network::byte_buffer
+                                                                        &buffer);
+
+        struct combat_event_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static combat_event_packet combat_event(let::network::byte_buffer
+                                                              &buffer);
+
+        struct camera_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static camera_packet camera(let::network::byte_buffer
+                                                  &buffer);
+
+        struct world_border_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static world_border_packet world_border(let::network::byte_buffer
+                                                              &buffer);
+
+        struct title_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static title_packet title(let::network::byte_buffer
+                                                &buffer);
+
+        struct set_compression_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static set_compression_packet set_compression(let::network::byte_buffer
+                                                                    &buffer);
+
+        struct player_list_header_and_footer_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static player_list_header_and_footer_packet player_list_header_and_footer(let::network::byte_buffer
+                                                                                                &buffer);
+
+        struct resource_pack_send_packet : public reader::incoming_packet {
+        };
+        [[nodiscard]] static resource_pack_send_packet resource_pack_send(let::network::byte_buffer
+                                                                          &buffer);
     };
 
     template<>

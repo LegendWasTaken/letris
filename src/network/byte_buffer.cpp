@@ -12,7 +12,7 @@ void let::network::byte_buffer::write_byte(std::byte byte)
   _data.push_back(byte);
 }
 
-void let::network::byte_buffer::write_bytes(std::byte* bytes, size_t count)
+void let::network::byte_buffer::write_bytes(const std::byte* bytes, size_t count)
 {
   _ensure_capacity(count);
 
@@ -72,4 +72,17 @@ std::size_t let::network::byte_buffer::capacity_left() const noexcept
 bool let::network::byte_buffer::empty() const noexcept
 {
   return _data.size() - 1 == _read_head;
+}
+
+void let::network::byte_buffer::reserve(size_t size) {
+    _data.reserve(size);
+}
+
+
+void let::network::byte_buffer::resize(size_t size) {
+    _data.resize(size);
+}
+
+void *let::network::byte_buffer::data() {
+    return _data.data();
 }

@@ -3,6 +3,8 @@
 #include <network/socket.h>
 #include <network/packets.h>
 
+#include <zlib-ng.h>
+
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -54,7 +56,9 @@ namespace let::network {
         void _handle_connecting_packet(let::network::byte_buffer &buffer);
         void _handle_connected_packet(let::network::byte_buffer &buffer);
 
-        void decompress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target);
+        void decompress_packet(let::network::byte_buffer &source, size_t decompressed_size, size_t compressed_size, let::network::byte_buffer &target);
+
+        void compress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target);
 
         std::atomic<bool> _processing;
         std::thread _processing_thread;

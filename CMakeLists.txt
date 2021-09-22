@@ -14,6 +14,17 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL
     endif ()
 endif ()
 
+option(LETRIS_USE_RELATIVE_ASSET_PATH "" OFF)
+
+if (LETRIS_USE_RELATIVE_ASSET_PATH)
+    message("Using relative asset path")
+    set(LETRIS_ASSET_PATH_VAR "./assets/")
+else()
+    message("Using none-relative asset path")
+    set(LETRIS_ASSET_PATH_VAR "${CMAKE_SOURCE_DIR}/assets/")
+endif()
+
+
 add_subdirectory(external)
 
 add_executable(Letris
@@ -34,8 +45,29 @@ add_executable(Letris
         src/network/packets.h
         src/network/packets.cpp
         src/network/encoder.h
+        src/network/query_manager.cpp
+        src/network/query_manager.h
+        src/network/game_network.cpp
+        src/network/game_network.h
+        src/network/nbt.cpp
+        src/network/nbt.h
 
-        src/network/query_manager.cpp src/network/query_manager.h src/network/game_network.cpp src/network/game_network.h src/network/nbt.cpp src/network/nbt.h src/world/chunk/chunk.cpp src/world/chunk/chunk.h)
+        # World
+        src/world/chunk/chunk.cpp
+        src/world/chunk/chunk.h
 
+        # Game
+        src/game/game.cpp
+        src/game/game.h
+
+        # Window
+        src/window/window.cpp
+        src/window/window.h
+
+        # Util
+        src/util/opengl.h src/ui/user_input.cpp src/ui/user_input.h src/ui/logical_devices.cpp src/ui/logical_devices.h)
+
+target_link_directories(Letris PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
 target_include_directories(Letris PRIVATE external src)
-target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib)
+target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore)
+target_compile_definitions(Letris PRIVATE GLFW_INCLUDE_NONE -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")

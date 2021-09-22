@@ -14,11 +14,17 @@ namespace let::network
 
     void write_byte(std::byte byte);
 
-    void write_bytes(std::byte* bytes, size_t count);
+    void write_bytes(const std::byte* bytes, size_t count);
 
     void clear();
 
     void step_back(size_t count);
+
+    void reserve(size_t size);
+
+    void resize(size_t size);
+
+    [[nodiscard]] void* data();
 
     [[nodiscard]] std::byte peek_byte();
 
