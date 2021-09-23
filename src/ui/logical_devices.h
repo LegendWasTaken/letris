@@ -2,7 +2,8 @@
 #define LETRIS_LOGICAL_DEVICES_H
 
 #include <array>
-#include <glm/glm.hpp>>
+#include <glm/glm.hpp>
+
 namespace let::logical {
 
     class keyboard {
@@ -140,11 +141,18 @@ namespace let::logical {
             released
         };
 
+        struct key_state {
+            state press_state;
+            int mods;
+        };
+
         keyboard();
 
         [[nodiscard]] state state_of(key_code key) const noexcept;
 
-        [[nodiscard]] std::array<state, static_cast<size_t>(key_code::max_key)> &keys();
+        [[nodiscard]] int mods_of(key_code key) const noexcept;
+
+        [[nodiscard]] std::array<key_state, static_cast<size_t>(key_code::max_key)> &keys();
 
         [[nodiscard]] bool is_key_down(key_code key) const noexcept;
 
@@ -153,7 +161,7 @@ namespace let::logical {
         [[nodiscard]] bool is_key_held(key_code key) const noexcept;
 
     private:
-        std::array<state, static_cast<size_t>(key_code::max_key)> _keys;
+        std::array<key_state, static_cast<size_t>(key_code::max_key)> _keys;
     };
 
     class mouse {

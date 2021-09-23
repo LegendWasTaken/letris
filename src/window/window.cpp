@@ -115,9 +115,11 @@ void let::window::_glfw_key_callback(GLFWwindow *window, int key, int scancode, 
     auto user_window = static_cast<let::window *>(glfwGetWindowUserPointer(window));
 
     if (action == GLFW_RELEASE)
-        user_window->_keyboard.keys()[key] = let::logical::keyboard::state::released;
+        user_window->_keyboard.keys()[key].press_state = let::logical::keyboard::state::released;
     else if (action == GLFW_REPEAT)
-        user_window->_keyboard.keys()[key] = let::logical::keyboard::state::repeat;
+        user_window->_keyboard.keys()[key].press_state = let::logical::keyboard::state::repeat;
     else if (action == GLFW_PRESS)
-        user_window->_keyboard.keys()[key] = let::logical::keyboard::state::pressed;
+        user_window->_keyboard.keys()[key].press_state = let::logical::keyboard::state::pressed;
+
+    user_window->_keyboard.keys()[key].mods = mods;
 }

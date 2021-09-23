@@ -9,8 +9,12 @@
 
 #include <ui/logical_devices.h>
 
+#include <util/luts.h>
+
 #include <string>
 #include <optional>
+
+#include <fmt/core.h>
 
 namespace let {
 

@@ -63,81 +63,13 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
                 }
             }
         }
-
-        // Fire keyboard events
-
-//        const auto key_lut = std::array<int, 348 - 32>({
-//           ultralight::KeyCodes::GK_SPACE,
-//           ultralight::KeyCodes::GK_APPS,
-//           ultralight::KeyCodes::GK_OEM_COMMA,
-//           ultralight::KeyCodes::GK_OEM_MINUS,
-//           ultralight::KeyCodes::GK_OEM_PERIOD,
-//           ultralight::KeyCodes::GK_OEM_102,
-//           ultralight::KeyCodes::GK_0,
-//           ultralight::KeyCodes::GK_1,
-//           ultralight::KeyCodes::GK_2,
-//           ultralight::KeyCodes::GK_3,
-//           ultralight::KeyCodes::GK_4,
-//           ultralight::KeyCodes::GK_5,
-//           ultralight::KeyCodes::GK_6,
-//           ultralight::KeyCodes::GK_7,
-//           ultralight::KeyCodes::GK_8,
-//           ultralight::KeyCodes::GK_9,
-//           ultralight::KeyCodes::GK_OEM_1,
-//           ultralight::KeyCodes::GK_END, // No equal?
-//           ultralight::KeyCodes::GK_A,
-//           ultralight::KeyCodes::GK_B,
-//           ultralight::KeyCodes::GK_C,
-//           ultralight::KeyCodes::GK_D,
-//           ultralight::KeyCodes::GK_E,
-//           ultralight::KeyCodes::GK_F,
-//           ultralight::KeyCodes::GK_G,
-//           ultralight::KeyCodes::GK_I,
-//           ultralight::KeyCodes::GK_J,
-//           ultralight::KeyCodes::GK_K,
-//           ultralight::KeyCodes::GK_L,
-//           ultralight::KeyCodes::GK_M,
-//           ultralight::KeyCodes::GK_N,
-//           ultralight::KeyCodes::GK_O,
-//           ultralight::KeyCodes::GK_P,
-//           ultralight::KeyCodes::GK_Q,
-//           ultralight::KeyCodes::GK_R,
-//           ultralight::KeyCodes::GK_S,
-//           ultralight::KeyCodes::GK_T,
-//           ultralight::KeyCodes::GK_U,
-//           ultralight::KeyCodes::GK_V,
-//           ultralight::KeyCodes::GK_W,
-//           ultralight::KeyCodes::GK_X,
-//           ultralight::KeyCodes::GK_Y,
-//           ultralight::KeyCodes::GK_Z,
-//           ultralight::KeyCodes::GK_OEM_4,
-//           ultralight::KeyCodes::GK_OEM_5,
-//           ultralight::KeyCodes::GK_OEM_6,
-//           ultralight::KeyCodes::GK_OEM_7,
-//           ultralight::KeyCodes::GK_OEM_8, // Todo: ?????
-//           ultralight::KeyCodes::GK_OEM_8,
-//           ultralight::KeyCodes::GK_ESCAPE,
-//           ultralight::KeyCodes::GK_ENTER
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//           ultralight::KeyCodes::GK_
-//        });
-
         // The keys are hardcoded which is annoying, but not much to do about it.
         if (_previous.update_ctx.has_value()) {
             for (auto key = 32; key < 348; key++) {
                 auto keyboard_event = ultralight::KeyEvent();
 
                 const auto state = update_ctx.keyboard.state_of(static_cast<logical::keyboard::key_code>(key));
+                const auto mods = update_ctx.keyboard.mods_of(static_cast<logical::keyboard::key_code>(key));
 
                 if (state != _previous.update_ctx->keyboard.state_of(static_cast<logical::keyboard::key_code>(key))) {
                     if (state == let::logical::keyboard::state::pressed)
@@ -148,12 +80,38 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
                         continue; // Dont register other events with ultralight
                     }
 
-                    keyboard_event.virtual_key_code = ultralight::KeyCodes::GK_E; // Lets see if this needs no mapping (i expect it needs it)
-                    keyboard_event.modifiers = 0;
+                    // Todo: Javascript events for this stuff, not dealing with that yet
+
+                    keyboard_event.virtual_key_code = lut::GLFWKeyCodeToUltralightKeyCode(key); // Lets see if this needs no mapping (i expect it needs it)
+                    keyboard_event.modifiers = lut::GLFWModsToUltralightMods(mods);
                     keyboard_event.native_key_code = 0;
                     GetKeyIdentifierFromVirtualKeyCode(keyboard_event.virtual_key_code, keyboard_event.key_identifier);
 
                     view.FireKeyEvent(keyboard_event);
+
+                    // Check if we should fire text to be written
+                    if ( state != logical::keyboard::state::released) {
+                        if (const auto text = lut::GLFWKeyCodeToChar(key); text != nullptr) {
+
+                            auto modified = std::string(text);
+
+                            if (mods & GLFW_MOD_SHIFT)
+                                std::transform(modified.begin(), modified.end(), modified.begin(), [](char letter) {
+                                    letter = ::toupper(letter); // Initial toupper, to get all of the chars
+                                    letter = lut::apply_shift(letter); // Second pass to apply the shift to special chars
+
+                                    return letter;
+                                });
+
+                            auto text_event = ultralight::KeyEvent();
+                            text_event.type = ultralight::KeyEvent::kType_Char;
+                            text_event.text = modified.c_str();
+                            text_event.unmodified_text = text;
+                            text_event.modifiers = lut::GLFWModsToUltralightMods(mods);
+                            view.FireKeyEvent(text_event);
+                        }
+                    }
+
                 }
             }
         }
