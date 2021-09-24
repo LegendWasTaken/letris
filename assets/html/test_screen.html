@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
+<style>
+    body {
+        background-color: whitesmoke;
+        font-family: 'Raleway', serif;
+    }
+
+    .background {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .selector {
+        display: flex;
+        flex-direction: row;
+        margin-left: 5%;
+        font-size: 24px;
+    }
+
+    .selector-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .line-vertical {
+        border-left: 2px solid black;
+        height: 90vh;
+        margin-left: 2vh;
+    }
+
+    .line-horizontal {
+        border-top: 2px solid black;
+        width: 50vw;
+    }
+
+    .module {
+        margin-left: 5vw;
+    }
+
+    .unselectable {
+        user-select: none;
+    }
+
+    .selected {
+        font-weight: bold;
+        text-decoration: underline;
+    }
+
+    #module-title {
+        font-size: 36px;
+        font-weight: bold;
+    }
+
+    #module-description {
+        font-size: 14px;
+        font-style: italic;
+    }
+
+    .module-setting-container {
+        width: 100%;
+        content: "";
+        display: table;
+    }
+
+    .module-setting {
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 24px;
+        float: left;
+        width: 50%;
+    }
+
+    .slider-container {
+        margin: auto;
+        width: 100%;
+    }
+
+    .slider {
+        appearance: none;
+        width: 100%;
+        height: 25px;
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+        border-radius: 10px;
+    }
+
+    .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        border-radius: 10px;
+        background: black;
+        cursor: pointer;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        height: 25px;
+        width: 52px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* The slider */
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        border-radius: 20px;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        border-radius: 34px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    input:checked + .toggle-slider {
+        background-color: lawngreen;
+    }
+
+    input:focus + .toggle-slider {
+        box-shadow: 0 0 1px lawngreen;
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+
+    input[type=text] {
+        padding-left: 5px;
+        padding-right: 5px;
+        width: 92%;
+        border: 2px solid black;
+        border-radius: 10px;
+        background-color: #d3d3d3;
+    }
+
+</style>
+<script>
+    function generateModule(name, description) {
+        return {name: name, description: description, selected: false};
+    }
+
+    let modules = [
+        generateModule("", ""),
+    ].map((module, index) => {
+        if (index === 0) module.selected = true;
+        return module;
+    });
+
+
+    function renderModules() {
+        // Remove the current ones, this is done one extra time during the start, as it's already empty. But it's fine...
+        // document.getElementById("module-selector").innerHTML = "";
+        // document.getElementById("module-page").innerHTML = "";
+
+        const module_selector = document.getElementById("module-selector");
+
+        modules.forEach((module, index) => {
+            let moduleElement = document.createElement("p");
+            moduleElement.innerHTML = module.name;
+            moduleElement.onclick = () => {
+                modules = modules.map(module => {
+                    module.selected = false;
+                    return module
+                });
+
+                modules[index].selected = true;
+                renderModules();
+            };
+            moduleElement.className += "unselectable ";
+
+            if (module.selected)
+                moduleElement.className += "selected";
+
+            module_selector.appendChild(moduleElement);
+        });
+
+        const moduleElement = document.getElementById("module-page");
+        const selectedModule = modules.find(module => module.selected);
+        if (selectedModule !== undefined) {
+            // Create the title
+            const moduleTitle = document.createElement("p");
+            moduleTitle.id = "module-title";
+            moduleTitle.className = "unselectable";
+            moduleTitle.innerHTML = selectedModule.name;
+            moduleElement.appendChild(moduleTitle);
+
+            // Create the horizontal line
+            const moduleHorizontalLine = document.createElement("div");
+            moduleHorizontalLine.className = "line-horizontal";
+            moduleElement.appendChild(moduleHorizontalLine);
+
+            // Description
+            const moduleDescription = document.createElement("p");
+            moduleDescription.id = "module-description";
+            moduleDescription.className = "unselectable";
+            moduleDescription.innerHTML = selectedModule.description;
+            moduleElement.appendChild(moduleDescription);
+
+        }
+    }
+
+    window.onload = () => {
+        renderModules();
+
+        setInterval(() => {
+            document.getElementById("dea").innerText = GetMessage();
+        }, 500);
+    };
+</script>
+<body style=>
+<div class="background">
+    <div class="selector">
+        <div id="module-selector" class="selector-list">
+            <!--                <p class="selected">Wall FPS</p>-->
+            <!--                <p>Sand FPS</p>-->
+            <!--                <p>TNT FPS</p>-->
+        </div>
+    </div>
+    <div class="line-vertical"></div>
+    <div id="module-page" class="module">
+        <!--            <p id="module-title">Wall FPS</p>-->
+        <!--            <div class="line-horizontal"></div>-->
+        <!--            <p id="module-description">Increases your FPS when near walls a significant amount by  culling unseen blocks.</p>-->
+        <div class="module-setting-container">
+            <div class="module-setting">Slider</div>
+            <div class="module-setting">
+                <div class="slider-container">
+                    <input type="range" min="1" max="100" value="50" class="slider" id="slider_val">
+                </div>
+            </div>
+        </div>
+        <div class="module-setting-container">
+            <div class="module-setting" id="dea">AAAA</div>
+            <div class="module-setting">
+                <label class="switch">
+                    <input type="checkbox">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="module-setting-container">
+            <div class="module-setting">Text Input</div>
+            <div class="module-setting">
+                <input type="text"></input>
+            </div>
+        </div>
+        <div class="module-setting-container">
+            <div class="module-setting">Switch</div>
+            <div class="module-setting">
+                <div class="select">
+                    <select/>
+                    <option value="foo">Foo</option>
+                    <option value="bar">Bar</option>
+                    <option value="foobar">Foobar</option>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

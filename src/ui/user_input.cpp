@@ -1,5 +1,15 @@
 #include "user_input.h"
 
+void let::input_screen::OnDOMReady(ultralight::View *caller, uint64_t frame_id, bool is_main_frame,
+                                   const ultralight::String &url) {
+    auto context = caller->LockJSContext();
+    ultralight::SetJSContext(context.get());
+
+    auto global = ultralight::JSGlobalObject();
+    global["GetMessage"] = (ultralight::JSCallbackWithRetval)
+            std::bind(&input_screen::GetMessage, this, std::placeholders::_1, std::placeholders::_2);
+}
+
 let::user_input_renderer::user_input_renderer(
         ultralight::Ref<ultralight::Renderer> *renderer,
         glm::ivec2 size) :
@@ -14,6 +24,8 @@ void let::user_input_renderer::use(let::input_screen *screen) {
 
     _current_view->get().LoadHTML(_current_screen->manifest().html_content.c_str());
     _current_view->get().Focus();
+
+    _current_view->get().set_load_listener(screen);
 }
 
 void let::user_input_renderer::update(const update_context &update_ctx) {
@@ -35,21 +47,21 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
 
         // Go through each button, and fire the key
         const auto buttons = std::array<let::logical::mouse::button, 3>({
-            logical::mouse::button::left,
-            logical::mouse::button::right,
-            logical::mouse::button::middle
-        });
+                                                                                logical::mouse::button::left,
+                                                                                logical::mouse::button::right,
+                                                                                logical::mouse::button::middle
+                                                                        });
 
         const auto button_lut = std::array<ultralight::MouseEvent::Button, 3>({
-            ultralight::MouseEvent::kButton_Left,
-            ultralight::MouseEvent::kButton_Right,
-            ultralight::MouseEvent::kButton_Middle
-        });
+                                                                                      ultralight::MouseEvent::kButton_Left,
+                                                                                      ultralight::MouseEvent::kButton_Right,
+                                                                                      ultralight::MouseEvent::kButton_Middle
+                                                                              });
 
         const auto type_lut = std::array<ultralight::MouseEvent::Type, 2>({
-            ultralight::MouseEvent::kType_MouseDown,
-            ultralight::MouseEvent::kType_MouseUp,
-        });
+                                                                                  ultralight::MouseEvent::kType_MouseDown,
+                                                                                  ultralight::MouseEvent::kType_MouseUp,
+                                                                          });
 
         if (_previous.update_ctx.has_value()) {
             for (auto button : buttons) {
@@ -82,7 +94,8 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
 
                     // Todo: Javascript events for this stuff, not dealing with that yet
 
-                    keyboard_event.virtual_key_code = lut::GLFWKeyCodeToUltralightKeyCode(key); // Lets see if this needs no mapping (i expect it needs it)
+                    keyboard_event.virtual_key_code = lut::GLFWKeyCodeToUltralightKeyCode(
+                            key); // Lets see if this needs no mapping (i expect it needs it)
                     keyboard_event.modifiers = lut::GLFWModsToUltralightMods(mods);
                     keyboard_event.native_key_code = 0;
                     GetKeyIdentifierFromVirtualKeyCode(keyboard_event.virtual_key_code, keyboard_event.key_identifier);
@@ -90,7 +103,7 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
                     view.FireKeyEvent(keyboard_event);
 
                     // Check if we should fire text to be written
-                    if ( state != logical::keyboard::state::released) {
+                    if (state != logical::keyboard::state::released) {
                         if (const auto text = lut::GLFWKeyCodeToChar(key); text != nullptr) {
 
                             auto modified = std::string(text);
@@ -98,7 +111,8 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
                             if (mods & GLFW_MOD_SHIFT)
                                 std::transform(modified.begin(), modified.end(), modified.begin(), [](char letter) {
                                     letter = ::toupper(letter); // Initial toupper, to get all of the chars
-                                    letter = lut::apply_shift(letter); // Second pass to apply the shift to special chars
+                                    letter = lut::apply_shift(
+                                            letter); // Second pass to apply the shift to special chars
 
                                     return letter;
                                 });
@@ -129,7 +143,7 @@ void let::user_input_renderer::read_into(std::uint32_t texture) {
         throw read_into_exception();
 
     const auto surface = _current_view->get().surface();
-    const auto bitmap_surface = (ultralight::BitmapSurface*) surface;
+    const auto bitmap_surface = (ultralight::BitmapSurface *) surface;
     // Note: I don't know what to do about the C cast here, and I don't care enough
 
     const auto bitmap = bitmap_surface->bitmap();
