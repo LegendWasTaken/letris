@@ -227,10 +227,6 @@
 
     window.onload = () => {
         renderModules();
-
-        setInterval(() => {
-            document.getElementById("dea").innerText = GetMessage();
-        }, 500);
     };
 </script>
 <body style=>
@@ -256,7 +252,7 @@
             </div>
         </div>
         <div class="module-setting-container">
-            <div class="module-setting" id="dea">AAAA</div>
+            <div class="module-setting" id="dea">Nice Test</div>
             <div class="module-setting">
                 <label class="switch">
                     <input type="checkbox">
@@ -273,7 +269,7 @@
         <div class="module-setting-container">
             <div class="module-setting">Switch</div>
             <div class="module-setting">
-                <div class="select">
+                <div class="select" onclick="CPP_ClickCallback()">
                     <select/>
                     <option value="foo">Foo</option>
                     <option value="bar">Bar</option>

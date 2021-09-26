@@ -1,7 +1,6 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
 #include <game/game.h>
+
+#include <iostream>
 
 int main() {
     /*
@@ -27,15 +26,16 @@ int main() {
     // Initialize Ultralight and create a renderer to use
     let::ultralight_init ultralightInit {};
 
+    auto window = let::window(1920, 1080, "Test");
     auto ultralight_renderer = ultralight::Renderer::Create();
-
     auto user_input_renderer = let::user_input_renderer(&ultralight_renderer, {1920, 1080});
 
     auto test_screen = let::test_screen();
+    test_screen.on_list_click([]() -> void {
+        std::cout << "List clicked" << std::endl;
+    });
 
     user_input_renderer.use(&test_screen);
-
-    auto window = let::window(1920, 1080, "Test");
 
     auto texture = GLuint();
     glGenTextures(1, &texture);
@@ -46,9 +46,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     window.set_texture_callback([&window, &user_input_renderer, texture](){
-
         const auto mouse = window.mouse();
-
         const auto keyboard = window.keyboard();
 
         user_input_renderer.update({
@@ -57,16 +55,12 @@ int main() {
         });
 
         user_input_renderer.render();
-
         user_input_renderer.read_into(texture);
-
         return texture;
     });
 
     while (!window.should_close())
-    {
         window.display_frame();
-    }
 
 
 //    auto game_network = let::network::game();

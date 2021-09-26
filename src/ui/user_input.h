@@ -17,6 +17,7 @@
 
 #include <string>
 #include <optional>
+#include <utility>
 
 #include <fmt/core.h>
 
@@ -37,40 +38,64 @@ namespace let {
         }
     };
 
+    class js_callback {
+    private:
+        std::optional<std::function<void()>> _empty_callback;
+        std::optional<std::function<void(ultralight::JSArgs)>> _argument_no_ret_callback;
+        std::optional<std::function<ultralight::JSValue(ultralight::JSArgs)>> _argument_ret_callback;
+
+        std::string _name;
+
+    public:
+        struct no_callback_bound_exception : std::exception {
+
+        };
+
+        js_callback() = default;
+
+        explicit js_callback(std::string name);
+
+        void bind(const std::function<void()> &callback);
+
+        void bind(const std::function<void(ultralight::JSArgs)> &callback);
+
+        void bind(const std::function<ultralight::JSValue(ultralight::JSArgs)> &callback);
+
+        [[nodiscard]] bool has_return_value() const noexcept;
+
+        [[nodiscard]] ultralight::JSCallback ultralight_callback_no_ret();
+
+        [[nodiscard]] ultralight::JSCallbackWithRetval ultralight_callback_with_ret();
+
+        [[nodiscard]] const std::string &name() const noexcept;
+    };
+
     class input_screen : public ultralight::LoadListener {
     public:
-
-        struct js_callback {
-            std::string name;
-            std::function<ultralight::JSValue(const ultralight::JSObject &, const ultralight::JSArgs)> callback;
+        struct register_data {
+            std::string html_content;
+            std::vector<js_callback> callbacks;
         };
 
         input_screen() = default;
-
-        struct register_data {
-            std::string html_content;
-            std::vector<js_callback> callbacks
-        };
 
         [[nodiscard]] virtual register_data manifest() const noexcept = 0;
 
         void OnDOMReady(ultralight::View *caller, uint64_t frame_id, bool is_main_frame,
                         const ultralight::String &url) override;
-
-        ultralight::JSValue GetMessage(const ultralight::JSObject &global_this, const ultralight::JSArgs &args) {
-            return ultralight::JSValue(std::to_string(rand()).c_str());
-        }
     };
 
     class test_screen : public input_screen {
+    private:
+        js_callback _list_click_callback;
 
-        [[nodiscard]] input_screen::register_data manifest() const noexcept override {
-            auto data = register_data();
+    public:
+        test_screen();
 
-            data.html_content = let::read_file(std::string(LETRIS_ASSET_PATH) + "/html/test_screen.html");
+        [[nodiscard]] input_screen::register_data manifest() const noexcept override;
 
-            return data;
-        }
+        void on_list_click(const std::function<void()> &callback);
+
     };
 
     class user_input_renderer {

@@ -6,14 +6,34 @@ void let::input_screen::OnDOMReady(ultralight::View *caller, uint64_t frame_id, 
     ultralight::SetJSContext(context.get());
 
     auto global = ultralight::JSGlobalObject();
-    global["GetMessage"] = (ultralight::JSCallbackWithRetval)
-            std::bind(&input_screen::GetMessage, this, std::placeholders::_1, std::placeholders::_2);
+
+    for (auto &callback : manifest().callbacks)
+        global[callback.name().c_str()] = callback.has_return_value() ? callback.ultralight_callback_with_ret()
+                                                                      : callback.ultralight_callback_no_ret();
+}
+
+let::test_screen::test_screen() {
+    _list_click_callback = js_callback("CPP_ClickCallback");
+}
+
+void let::test_screen::on_list_click(const std::function<void()> &callback) {
+    _list_click_callback.bind(callback);
+}
+
+let::input_screen::register_data let::test_screen::manifest() const noexcept {
+    auto data = register_data();
+
+    data.html_content = let::read_file(std::string(LETRIS_ASSET_PATH) + "/html/test_screen.html");
+
+    data.callbacks.emplace_back(_list_click_callback);
+
+    return data;
 }
 
 let::user_input_renderer::user_input_renderer(
         ultralight::Ref<ultralight::Renderer> *renderer,
         glm::ivec2 size) :
-        _renderer(renderer), _size(size) {}
+        _renderer(renderer), _size(size), _current_screen(nullptr) {}
 
 void let::user_input_renderer::set_resolution(std::uint16_t width, std::uint16_t height) {
 }
@@ -29,6 +49,14 @@ void let::user_input_renderer::use(let::input_screen *screen) {
 }
 
 void let::user_input_renderer::update(const update_context &update_ctx) {
+
+#ifndef NDEBUG
+    if (update_ctx.keyboard.is_key_down(logical::keyboard::key_code::key_f9)) {
+        // Reload the HTML
+        _current_view->get().LoadHTML(_current_screen->manifest().html_content.c_str());
+    }
+#endif
+
     _renderer->get().Update();
 
     if (_current_view.has_value()) {
@@ -162,4 +190,52 @@ void let::user_input_renderer::read_into(std::uint32_t texture) {
                  pixels);
 
     bitmap->UnlockPixels();
+}
+
+let::js_callback::js_callback(std::string name) : _name(name) {
+
+}
+
+void let::js_callback::bind(const std::function<void()> &callback) {
+    _empty_callback = callback;
+}
+
+void let::js_callback::bind(const std::function<void(ultralight::JSArgs)> &callback) {
+    _argument_no_ret_callback = callback;
+}
+
+void let::js_callback::bind(const std::function<ultralight::JSValue(ultralight::JSArgs)> &callback) {
+    _argument_ret_callback = callback;
+}
+
+bool let::js_callback::has_return_value() const noexcept {
+    return _argument_ret_callback.has_value();
+}
+
+ultralight::JSCallback let::js_callback::ultralight_callback_no_ret() {
+
+    if (_empty_callback.has_value()) {
+        return [callback = _empty_callback.value()](const ultralight::JSObject &global, const ultralight::JSArgs &args) -> void {
+            // Todo: Some type of warning here
+            callback();
+        };
+    } else if (_argument_no_ret_callback.has_value()) {
+        return [callback = _argument_no_ret_callback.value()](const ultralight::JSObject &global, const ultralight::JSArgs &args) -> void {
+            callback(args);
+        };
+    } else
+        throw no_callback_bound_exception();
+}
+
+
+ultralight::JSCallbackWithRetval let::js_callback::ultralight_callback_with_ret() {
+    if (_argument_ret_callback.has_value())
+    return [callback = _argument_ret_callback.value()](const ultralight::JSObject &global, const ultralight::JSArgs &args) -> ultralight::JSValue {
+            return callback(args);
+    };
+    throw no_callback_bound_exception();
+}
+
+const std::string &let::js_callback::name() const noexcept {
+    return _name;
 }
