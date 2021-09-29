@@ -16,6 +16,8 @@ namespace let {
         let::network::game *_game_network;
 
         let::window *_window;
+
+        let::user_input_renderer *_ui_renderer;
     };
 }
 

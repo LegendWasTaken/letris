@@ -1,6 +1,7 @@
 #include "game.h"
 
-let::game::game(let::network::game *game_network, let::window *window) : _game_network(game_network), _window(window) {
+let::game::game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer)
+        : _game_network(game_network), _window(window), _ui_renderer(ui_renderer) {
 
 }
 
