@@ -65,7 +65,20 @@ add_executable(Letris
         src/window/window.h
 
         # Util
-        src/util/opengl.h src/ui/user_input.cpp src/ui/user_input.h src/ui/logical_devices.cpp src/ui/logical_devices.h src/util/luts.h src/util/files.h)
+        src/util/opengl.h
+        src/util/luts.h
+        src/util/files.h
+
+        # Ui
+        src/ui/user_input.cpp
+        src/ui/user_input.h
+        src/ui/ultralight_filesystem.cpp
+        src/ui/ultralight_filesystem.h
+
+        # Common
+        src/common/logical_devices.cpp
+        src/common/logical_devices.h
+        )
 
 target_link_directories(Letris PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
 target_include_directories(Letris PRIVATE external src)

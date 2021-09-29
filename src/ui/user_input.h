@@ -10,7 +10,9 @@
 #include <AppCore/Window.h>
 #include <Ultralight/JavaScript.h>
 
-#include <ui/logical_devices.h>
+#include <common/logical_devices.h>
+
+#include <ui/ultralight_filesystem.h>
 
 #include <util/luts.h>
 #include <util/files.h>
@@ -24,6 +26,8 @@
 namespace let {
 
     class ultralight_init {
+    private:
+        let::ultralight_filesystem _filesystem {};
     public:
         ultralight_init() {
             auto cfg = ultralight::Config();
@@ -33,7 +37,7 @@ namespace let {
             ultralight::Platform::instance().set_config(cfg);
 
             ultralight::Platform::instance().set_font_loader(ultralight::GetPlatformFontLoader());
-            ultralight::Platform::instance().set_file_system(ultralight::GetPlatformFileSystem("."));
+            ultralight::Platform::instance().set_file_system(&_filesystem);
             ultralight::Platform::instance().set_logger(ultralight::GetDefaultLogger("ultralight.log"));
         }
     };
@@ -73,7 +77,7 @@ namespace let {
     class input_screen : public ultralight::LoadListener {
     public:
         struct register_data {
-            std::string html_content;
+            std::string html_url;
             std::vector<js_callback> callbacks;
         };
 
@@ -85,17 +89,34 @@ namespace let {
                         const ultralight::String &url) override;
     };
 
-    class test_screen : public input_screen {
+    class main_menu : public input_screen {
     private:
-        js_callback _list_click_callback;
+        js_callback _multiplayer_click_callback;
+        js_callback _graphics_click_callback;
+        js_callback _sound_click_callback;
 
     public:
-        test_screen();
+        main_menu();
 
         [[nodiscard]] input_screen::register_data manifest() const noexcept override;
 
-        void on_list_click(const std::function<void()> &callback);
+        void on_multiplayer_click(const std::function<void()> &callback);
 
+        void on_graphics_click(const std::function<void()> &callback);
+
+        void on_sound_click(const std::function<void()> &callback);
+    };
+
+    class graphics_menu : public input_screen {
+    private:
+        js_callback _main_menu_click_callback;
+
+    public:
+        graphics_menu();
+
+        [[nodiscard]] input_screen::register_data manifest() const noexcept override;
+
+        void on_main_menu_click(const std::function<void()> &callback);
     };
 
     class user_input_renderer {

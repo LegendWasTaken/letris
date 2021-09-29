@@ -14,10 +14,15 @@ let::game_builder &let::game_builder::with_network(let::network::game &game_netw
 }
 
 let::game let::game_builder::build() const {
-    return let::game(_game_network, _window);
+    return let::game(_game_network, _window, _ui_renderer);
 }
 
 let::game_builder &let::game_builder::with_window(let::window &window) {
     _window = &window;
+    return *this;
+}
+
+let::game_builder &let::game_builder::with_ui_renderer(let::user_input_renderer &ui_renderer) {
+    _ui_renderer = &ui_renderer;
     return *this;
 }

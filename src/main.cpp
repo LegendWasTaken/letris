@@ -30,12 +30,26 @@ int main() {
     auto ultralight_renderer = ultralight::Renderer::Create();
     auto user_input_renderer = let::user_input_renderer(&ultralight_renderer, {1920, 1080});
 
-    auto test_screen = let::test_screen();
-    test_screen.on_list_click([]() -> void {
-        std::cout << "List clicked" << std::endl;
+    auto main_menu = let::main_menu();
+    auto graphics_menu = let::graphics_menu();
+
+    main_menu.on_multiplayer_click([]{
+        std::cout << "Multiplayer Button Clicked" << std::endl;
     });
 
-    user_input_renderer.use(&test_screen);
+    main_menu.on_graphics_click([&user_input_renderer, &graphics_menu]{
+        user_input_renderer.use(&graphics_menu);
+    });
+
+    main_menu.on_sound_click([]{
+        std::cout << "Sound Button Clicked" << std::endl;
+    });
+
+    graphics_menu.on_main_menu_click([&user_input_renderer, &main_menu]{
+        user_input_renderer.use(&main_menu);
+    });
+
+    user_input_renderer.use(&main_menu);
 
     auto texture = GLuint();
     glGenTextures(1, &texture);

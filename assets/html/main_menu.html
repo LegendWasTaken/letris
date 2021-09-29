@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
+<style>
+    body {
+        background-color: #121212;
+        font-family: 'Raleway', serif;
+    }
+
+    .inner {
+        display: table;
+        margin: 0 auto;
+    }
+
+    .title {
+        margin-top: 3em;
+        font-size: 64px;
+        color: #d2d2d2;
+    }
+
+    .outer {
+        width: 100%
+    }
+
+    .click-button {
+        margin-top: 3em;
+        font-size: 20px;
+        width: 20em;
+        height: 2.5em;
+        background-color: #909090;
+        color: #424242;
+        transition: .2s linear;
+    }
+
+    .click-button:hover {
+        transition: .2s linear;
+        background-color: #ffffff;
+    }
+
+</style>
+<script>
+
+</script>
+<body>
+<div class="outer">
+    <div class="inner">
+        <h1 class="title">C++ Minecraft Client</h1>
+    </div>
+    <div class="inner">
+        <button type="button" class="btn click-button" onclick="CPP_MultiplayerClick()">Multiplayer</button>
+    </div>
+    <div class="inner">
+        <button type="button" class="btn click-button" onclick="CPP_GraphicsClick()">Graphics</button>
+    </div>
+    <div class="inner">
+        <button type="button" class="btn click-button" onclick="CPP_SoundClick()">Sound</button>
+    </div>
+</div>
+</body>
+</html>

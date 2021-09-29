@@ -8,7 +8,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include <ui/logical_devices.h>
+#include <common/logical_devices.h>
 
 #include <util/opengl.h>
 #include <glm/glm.hpp>

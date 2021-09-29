@@ -12,22 +12,34 @@ void let::input_screen::OnDOMReady(ultralight::View *caller, uint64_t frame_id, 
                                                                       : callback.ultralight_callback_no_ret();
 }
 
-let::test_screen::test_screen() {
-    _list_click_callback = js_callback("CPP_ClickCallback");
+let::main_menu::main_menu() {
+    _multiplayer_click_callback = js_callback("CPP_MultiplayerClick");
+    _graphics_click_callback = js_callback("CPP_GraphicsClick");
+    _sound_click_callback = js_callback("CPP_SoundClick");
 }
 
-void let::test_screen::on_list_click(const std::function<void()> &callback) {
-    _list_click_callback.bind(callback);
-}
-
-let::input_screen::register_data let::test_screen::manifest() const noexcept {
+let::input_screen::register_data let::main_menu::manifest() const noexcept {
     auto data = register_data();
 
-    data.html_content = let::read_file(std::string(LETRIS_ASSET_PATH) + "/html/test_screen.html");
+    data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/main_menu.html";
 
-    data.callbacks.emplace_back(_list_click_callback);
+    data.callbacks.emplace_back(_multiplayer_click_callback);
+    data.callbacks.emplace_back(_graphics_click_callback);
+    data.callbacks.emplace_back(_sound_click_callback);
 
     return data;
+}
+
+void let::main_menu::on_multiplayer_click(const std::function<void()> &callback) {
+    _multiplayer_click_callback.bind(callback);
+}
+
+void let::main_menu::on_graphics_click(const std::function<void()> &callback) {
+    _graphics_click_callback.bind(callback);
+}
+
+void let::main_menu::on_sound_click(const std::function<void()> &callback) {
+    _sound_click_callback.bind(callback);
 }
 
 let::user_input_renderer::user_input_renderer(
@@ -42,7 +54,7 @@ void let::user_input_renderer::use(let::input_screen *screen) {
     _current_screen = screen;
     _current_view = _renderer->get().CreateView(_size.x, _size.y, false, nullptr);
 
-    _current_view->get().LoadHTML(_current_screen->manifest().html_content.c_str());
+    _current_view->get().LoadURL(_current_screen->manifest().html_url.c_str());
     _current_view->get().Focus();
 
     _current_view->get().set_load_listener(screen);
@@ -53,7 +65,7 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
 #ifndef NDEBUG
     if (update_ctx.keyboard.is_key_down(logical::keyboard::key_code::key_f9)) {
         // Reload the HTML
-        _current_view->get().LoadHTML(_current_screen->manifest().html_content.c_str());
+        _current_view->get().LoadURL(_current_screen->manifest().html_url.c_str());
     }
 #endif
 
@@ -238,4 +250,22 @@ ultralight::JSCallbackWithRetval let::js_callback::ultralight_callback_with_ret(
 
 const std::string &let::js_callback::name() const noexcept {
     return _name;
+}
+
+let::graphics_menu::graphics_menu() {
+    _main_menu_click_callback = js_callback("CPP_MainMenuClick");
+}
+
+let::input_screen::register_data let::graphics_menu::manifest() const noexcept {
+    auto data = register_data();
+
+    data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/graphics_menu.html";
+
+    data.callbacks.push_back(_main_menu_click_callback);
+
+    return data;
+}
+
+void let::graphics_menu::on_main_menu_click(const std::function<void()> &callback) {
+    _main_menu_click_callback.bind(callback);
 }

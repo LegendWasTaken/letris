@@ -8,7 +8,7 @@
 namespace let {
     class game {
     public:
-        game(let::network::game *game_network, let::window *window);
+        game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer);
 
         void start();
 
@@ -28,6 +28,8 @@ namespace let {
 
         [[nodiscard]] game_builder& with_window(let::window &window);
 
+        [[nodiscard]] game_builder& with_ui_renderer(let::user_input_renderer &ui_renderer);
+
         [[nodiscard]] let::game build() const;
 
     private:
@@ -35,6 +37,7 @@ namespace let {
 
         let::window *_window = nullptr;
 
+        let::user_input_renderer *_ui_renderer;
     };
 }
 
