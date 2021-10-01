@@ -2,13 +2,14 @@
 #define LETRIS_GAME_H
 
 #include <network/game_network.h>
+#include <network/query_manager.h>
 #include <window/window.h>
 #include <ui/user_input.h>
 
 namespace let {
     class game {
     public:
-        game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer);
+        game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer, let::network::query *server_querier);
 
         void start();
 
@@ -18,6 +19,31 @@ namespace let {
         let::window *_window;
 
         let::user_input_renderer *_ui_renderer;
+
+        let::network::query *_server_querier;
+
+        std::string _value = "test";
+
+        struct {
+            let::main_menu main;
+            let::graphics_menu graphics;
+            let::multiplayer_menu multiplayer;
+        } _menus;
+
+        // Todo: Consider making some type of RAII classes for all OpenGL stuff
+        struct {
+            struct {
+                GLuint target = ~0;
+            } texture;
+        } _gpu;
+
+        glm::ivec2 _current_resolution;
+
+        void _initialize_menus();
+
+        void _create_gpu_resources();
+
+
     };
 }
 
@@ -32,6 +58,8 @@ namespace let {
 
         [[nodiscard]] game_builder& with_ui_renderer(let::user_input_renderer &ui_renderer);
 
+        [[nodiscard]] game_builder& with_server_querier(let::network::query &server_querier);
+
         [[nodiscard]] let::game build() const;
 
     private:
@@ -39,7 +67,9 @@ namespace let {
 
         let::window *_window = nullptr;
 
-        let::user_input_renderer *_ui_renderer;
+        let::user_input_renderer *_ui_renderer = nullptr;
+
+        let::network::query *_server_querier = nullptr;
     };
 }
 

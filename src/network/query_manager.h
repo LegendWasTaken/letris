@@ -53,15 +53,15 @@ namespace let::network {
 
         /// \brief Retrieve the data from the queried servers, might not be available
         /// \return A list of optional server data
-        [[nodiscard]] std::vector<queryable_server_info> query_status() const noexcept;
+        [[nodiscard]] std::vector<queryable_server_info> query_status();
 
     private:
-        struct {
-            struct queryable_server_socket {
-                queryable_server target;
-                let::network::socket socket;
-            };
-            std::vector<queryable_server_socket> sockets;
-        } _query_data;
+        struct queryable_server_socket {
+            queryable_server target{};
+            std::optional<server_info> info;
+            std::unique_ptr<let::network::socket> socket;
+        };
+
+        std::vector<queryable_server_socket> _sockets;
     };
 }

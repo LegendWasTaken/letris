@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
+<style>
+    body {
+        background-color: #121212;
+        font-family: 'Raleway', serif;
+    }
+
+    .title {
+        margin-top: 1em;
+        margin-left: 2em;
+        font-size: 64px;
+        color: #d2d2d2;
+    }
+
+    .footer {
+        position: absolute;
+        bottom: 1em;
+        font-size: 64px;
+        margin-left: 2em;
+    }
+
+    .container {
+        width:75%;
+        margin: 0 auto;
+    }
+
+    .row {
+        display:flex;
+    }
+
+    .row-item {
+        width: 100%;
+        margin: 3px;
+        text-align: center;
+        color: #dbd9dc;
+    }
+
+    .row-text {
+        padding: 10px 0;
+        font-size: 20px;
+        color: #424242;
+        background: gray;
+    }
+
+    .row-slider {
+        position:relative;
+    }
+
+    .row-slider div {
+        position: absolute;
+        width:100%;
+        color: #dbd9dc;
+        font-size: 20px;
+        z-index:15;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        pointer-events:none;
+        transition: .2s linear;
+    }
+
+    .row-slider:hover div {
+        color: #fffa70;
+        transition: .2s linear;
+    }
+
+    .slider {
+        margin: 0;
+        -webkit-appearance: none;
+        width: 100%;
+        height: 100%;
+        background: #2a2b2a;
+        outline: none;
+        color: #424242;
+    }
+
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        min-height: 34px;
+        background: #6e6c6d;
+        cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        background: #6e6c6d;
+        cursor: pointer;
+    }
+
+    .click-button {
+        margin-top: 3em;
+        font-size: 20px;
+        width: 20em;
+        height: 2.5em;
+        background-color: #909090;
+        color: #424242;
+        transition: .2s linear;
+    }
+
+    .click-button:hover {
+        transition: .2s linear;
+        background-color: #ffffff;
+        color: #424242;
+    }
+
+</style>
+<script>
+    window.addEventListener('load', function() {
+        setInterval(() => {
+            document.getElementById("test").innerText = CPP_ServerData();
+        }, 20);
+    })
+</script>
+<body>
+<h1 class="title">Multiplayer</h1>
+<section class="container">
+    <div class="row">
+        <div class="row-item row-text" id="test">Localhost</div>
+    </div>
+</section>
+<div class="footer">
+    <button type="button" class="btn click-button" onclick="CPP_MainMenuClick()">Main Menu</button>
+</div>
+</body>
+</html>

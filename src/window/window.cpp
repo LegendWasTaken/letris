@@ -49,6 +49,10 @@ let::logical::keyboard let::window::keyboard() const noexcept {
     return _keyboard;
 }
 
+glm::ivec2 let::window::resolution() const noexcept {
+    return glm::ivec2(_width, _height);
+}
+
 void let::window::set_texture_callback(std::function<std::optional<std::uint32_t>()> texture_callback) {
     _texture_callback = std::move(texture_callback);
 }

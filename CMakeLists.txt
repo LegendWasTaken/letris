@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 if (CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message(STATUS "Using clang-cl options (MSVC interface)")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR- /arch:AVX /MT /W4 /EHa /EHs")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR- /MT /W4 /EHa /EHs")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message(STATUS "Using Clang/GCC compiler options")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")

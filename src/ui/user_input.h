@@ -107,6 +107,22 @@ namespace let {
         void on_sound_click(const std::function<void()> &callback);
     };
 
+    struct multiplayer_menu : public input_screen {
+    private:
+        js_callback _main_menu_click_callback;
+        js_callback _server_data_callback;
+
+    public:
+        multiplayer_menu();
+
+        [[nodiscard]] input_screen::register_data manifest() const noexcept override;
+
+
+        void on_main_menu_click(const std::function<void()> &callback);
+
+        void on_server_data_request(const std::function<ultralight::JSValue(ultralight::JSArgs)> &callback);
+    };
+
     class graphics_menu : public input_screen {
     private:
         js_callback _main_menu_click_callback;

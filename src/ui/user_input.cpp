@@ -7,9 +7,12 @@ void let::input_screen::OnDOMReady(ultralight::View *caller, uint64_t frame_id, 
 
     auto global = ultralight::JSGlobalObject();
 
-    for (auto &callback : manifest().callbacks)
-        global[callback.name().c_str()] = callback.has_return_value() ? callback.ultralight_callback_with_ret()
-                                                                      : callback.ultralight_callback_no_ret();
+    for (auto &callback : manifest().callbacks) {
+        if (callback.has_return_value())
+            global[callback.name().c_str()] = callback.ultralight_callback_with_ret();
+        else
+            global[callback.name().c_str()] = callback.ultralight_callback_no_ret();
+    }
 }
 
 let::main_menu::main_menu() {
@@ -227,12 +230,14 @@ bool let::js_callback::has_return_value() const noexcept {
 ultralight::JSCallback let::js_callback::ultralight_callback_no_ret() {
 
     if (_empty_callback.has_value()) {
-        return [callback = _empty_callback.value()](const ultralight::JSObject &global, const ultralight::JSArgs &args) -> void {
+        return [callback = _empty_callback.value()](const ultralight::JSObject &global,
+                                                    const ultralight::JSArgs &args) -> void {
             // Todo: Some type of warning here
             callback();
         };
     } else if (_argument_no_ret_callback.has_value()) {
-        return [callback = _argument_no_ret_callback.value()](const ultralight::JSObject &global, const ultralight::JSArgs &args) -> void {
+        return [callback = _argument_no_ret_callback.value()](const ultralight::JSObject &global,
+                                                              const ultralight::JSArgs &args) -> void {
             callback(args);
         };
     } else
@@ -242,9 +247,10 @@ ultralight::JSCallback let::js_callback::ultralight_callback_no_ret() {
 
 ultralight::JSCallbackWithRetval let::js_callback::ultralight_callback_with_ret() {
     if (_argument_ret_callback.has_value())
-    return [callback = _argument_ret_callback.value()](const ultralight::JSObject &global, const ultralight::JSArgs &args) -> ultralight::JSValue {
+        return [callback = _argument_ret_callback.value()](const ultralight::JSObject &global,
+                                                           const ultralight::JSArgs &args) -> ultralight::JSValue {
             return callback(args);
-    };
+        };
     throw no_callback_bound_exception();
 }
 
@@ -268,4 +274,29 @@ let::input_screen::register_data let::graphics_menu::manifest() const noexcept {
 
 void let::graphics_menu::on_main_menu_click(const std::function<void()> &callback) {
     _main_menu_click_callback.bind(callback);
+}
+
+let::multiplayer_menu::multiplayer_menu() {
+    _main_menu_click_callback = js_callback("CPP_MainMenuClick");
+    _server_data_callback = js_callback("CPP_ServerData");
+}
+
+let::input_screen::register_data let::multiplayer_menu::manifest() const noexcept {
+    auto data = register_data();
+
+    data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/multiplayer_menu.html";
+
+    data.callbacks.push_back(_main_menu_click_callback);
+    data.callbacks.push_back(_server_data_callback);
+
+    return data;
+}
+
+void let::multiplayer_menu::on_main_menu_click(const std::function<void()> &callback) {
+    _main_menu_click_callback.bind(callback);
+}
+
+void let::multiplayer_menu::on_server_data_request(
+        const std::function<ultralight::JSValue(ultralight::JSArgs)> &callback) {
+    _server_data_callback.bind(callback);
 }

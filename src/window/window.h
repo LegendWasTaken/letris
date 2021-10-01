@@ -31,6 +31,8 @@ namespace let {
 
         [[nodiscard]] let::logical::keyboard keyboard() const noexcept;
 
+        [[nodiscard]] glm::ivec2 resolution() const noexcept;
+
         void set_texture_callback(std::function<std::optional<std::uint32_t>()> texture_callback);
 
         void display_frame();
