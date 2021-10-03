@@ -35,7 +35,11 @@ void let::game::_initialize_menus() {
         auto server_to_query = std::vector<let::network::query::queryable_server>();
         server_to_query.push_back(network::query::queryable_server{
                 .port = 25565,
-                .address = "127.0.0.1"
+                .address = "localhost"
+        });
+        server_to_query.push_back(network::query::queryable_server{
+                .port = 25565,
+                .address = "mc.hypixel.net"
         });
 
         _server_querier->query_servers(server_to_query);
@@ -62,8 +66,21 @@ void let::game::_initialize_menus() {
 
     _menus.multiplayer.on_server_data_request([this](ultralight::JSArgs args) -> ultralight::JSValue {
         const auto servers = _server_querier->query_status();
+        auto json = nlohmann::json();
 
-        return ultralight::JSValue(std::to_string(servers.size()).c_str());
+        for (const auto &server : servers) {
+            auto server_json = nlohmann::json();
+
+            server_json["connected"] = server.info.can_connect;
+            server_json["description"] = server.info.description.text;
+            server_json["target"] = server.target.address;
+
+            json.emplace_back(server_json);
+        }
+
+        auto json_str = nlohmann::to_string(json);
+
+        return ultralight::JSValue(nlohmann::to_string(json).c_str());
     });
 
     _ui_renderer->use(&_menus.main);

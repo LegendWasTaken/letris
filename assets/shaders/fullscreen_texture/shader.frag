@@ -12,5 +12,5 @@ void main()
 {
     vec2 flipped = vec2(tex_coord.x, tex_coord.y * -1 + 1);
     vec3 colour = bool(has_texture) ? texture(tex, flipped).xyz : vec3(0.2, 0.3, 0.8);
-    frag_colour = vec4(colour, 1);
+    frag_colour = vec4(colour.bgr, 1);
 }

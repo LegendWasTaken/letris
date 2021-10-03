@@ -30,7 +30,7 @@ namespace let::network {
         void query_servers(const std::vector<queryable_server> &servers);
 
         struct server_info {
-            bool can_connect;
+            bool can_connect = false;
 
             struct {
                 std::string name;
@@ -48,7 +48,7 @@ namespace let::network {
 
         struct queryable_server_info {
             queryable_server target;
-            std::optional<server_info> info;
+            server_info info;
         };
 
         /// \brief Retrieve the data from the queried servers, might not be available

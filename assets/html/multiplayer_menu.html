@@ -29,24 +29,21 @@
 
     .row {
         display:flex;
+        height: 3em;
     }
 
     .row-item {
         width: 100%;
         margin: 3px;
-        text-align: center;
         color: #dbd9dc;
     }
 
     .row-text {
         padding: 10px 0;
         font-size: 20px;
+        text-align: center;
         color: #424242;
         background: gray;
-    }
-
-    .row-slider {
-        position:relative;
     }
 
     .row-slider div {
@@ -68,32 +65,6 @@
         transition: .2s linear;
     }
 
-    .slider {
-        margin: 0;
-        -webkit-appearance: none;
-        width: 100%;
-        height: 100%;
-        background: #2a2b2a;
-        outline: none;
-        color: #424242;
-    }
-
-    .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 25px;
-        min-height: 34px;
-        background: #6e6c6d;
-        cursor: pointer;
-    }
-
-    .slider::-moz-range-thumb {
-        width: 25px;
-        height: 25px;
-        background: #6e6c6d;
-        cursor: pointer;
-    }
-
     .click-button {
         margin-top: 3em;
         font-size: 20px;
@@ -110,20 +81,68 @@
         color: #424242;
     }
 
+    .server-icon {
+        float: left;
+        width: 3em;
+        background-color: #C4CFE5;
+    }
+
+    .server-name {
+        padding-top: 5px;
+        padding-left: 5px;
+        padding-right: 2px;
+        width: auto;
+        margin-right: 0;
+        font-size: 18px;
+        color: #424242;
+        background: gray;
+    }
+
+    .outline-red {
+        outline: red solid 2px;
+    }
+
 </style>
 <script>
     window.addEventListener('load', function() {
         setInterval(() => {
-            document.getElementById("test").innerText = CPP_ServerData();
-        }, 20);
+            let list = document.getElementById("server-list");
+            while (list.firstChild) list.removeChild(list.firstChild);
+
+            const servers = JSON.parse(CPP_ServerData());
+            servers.forEach(server => {
+                // Row div
+                let row = document.createElement("div");
+                row.classList.add("row");
+
+                // Text Div
+                let text = document.createElement("div");
+                text.classList.add("row-item", "row-text");
+                text.innerText = `${server["target"]}: ${server["description"]}`;
+
+                let server_icon = document.createElement("div");
+                server_icon.classList.add("row-item", "server-icon");
+
+                let server_name = document.createElement("div");
+                server_name.classList.add("row-item", "server-name");
+                server_name.innerText = "Localhost";
+
+                if (!server["connected"])
+                    server_name.classList.add("outline-red");
+
+                row.appendChild(server_icon);
+                row.appendChild(server_name);
+                row.appendChild(text);
+
+                list.appendChild(row);
+            });
+
+        }, 200);
     })
 </script>
 <body>
 <h1 class="title">Multiplayer</h1>
-<section class="container">
-    <div class="row">
-        <div class="row-item row-text" id="test">Localhost</div>
-    </div>
+<section class="container" id="server-list">
 </section>
 <div class="footer">
     <button type="button" class="btn click-button" onclick="CPP_MainMenuClick()">Main Menu</button>

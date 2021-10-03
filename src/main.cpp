@@ -2,6 +2,7 @@
 
 int main() {
     sockpp::socket_initializer sockInit {};
+
     let::window_init windowInit {};
     let::ultralight_init ultralightInit {};
 

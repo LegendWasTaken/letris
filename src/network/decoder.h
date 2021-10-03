@@ -76,16 +76,18 @@ namespace let::network::decoder {
     }
 
     inline void read(let::network::byte_buffer &buffer, let::var_int &value) {
-        // Directly from wiki.vg
-        auto num_read = std::int32_t(0);
-        auto result = std::int32_t(0);
-        auto read = std::int8_t(0);
+        int result = 0;
+        int offset = 0;
+        int8_t current_byte;
         do {
-            read = static_cast<std::int8_t>(buffer.next_byte());
-            auto val = (read & 0b01111111);
-            result |= (val << (7 * num_read++));
-            if (num_read > 5) { throw std::runtime_error("Read var-int that's too large!"); }
-        } while ((read & 0b10000000) != 0);
+            if (offset == 35)
+                throw std::runtime_error("Read var-int that's too large!");
+
+            current_byte = static_cast<int8_t>(buffer.next_byte());
+            result |= (current_byte & 0b01111111) << offset;
+
+            offset += 7;
+        } while ((current_byte & 0b10000000) != 0);
 
         value = var_int(result);
     }
@@ -109,7 +111,7 @@ namespace let::network::decoder {
         auto var = let::var_int(0);
         read(buffer, var);
         auto length = static_cast<std::int32_t>(var);
-        if (length < 0 || length > 32767) throw std::runtime_error("String size is impossible");
+        if (length < 0 || length > 32767) throw std::runtime_error("String too large!");
 
         auto data = buffer.next_bytes(length);
 
