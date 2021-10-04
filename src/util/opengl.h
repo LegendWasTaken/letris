@@ -9,6 +9,8 @@
 
 #include <glad/glad.h>
 
+#include <tracy/Tracy.hpp>
+
 namespace let::opengl {
     namespace detail {
         [[nodiscard]] inline std::uint32_t shader_type_from_path(std::string_view path) {
