@@ -23,46 +23,19 @@
     }
 
     .container {
-        width:75%;
+        width: 50%;
+        display: grid;
+        grid-template-columns: 4em 1fr;
+        row-gap: 0.4em;
         margin: 0 auto;
-    }
-
-    .row {
-        display:flex;
-        height: 3em;
     }
 
     .row-item {
         width: 100%;
-        margin: 3px;
+        height: 4em;
+        max-height: 4em;
         color: #dbd9dc;
-    }
-
-    .row-text {
-        padding: 10px 0;
-        font-size: 20px;
-        text-align: center;
-        color: #424242;
-        background: gray;
-    }
-
-    .row-slider div {
-        position: absolute;
-        width:100%;
-        color: #dbd9dc;
-        font-size: 20px;
-        z-index:15;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-        pointer-events:none;
-        transition: .2s linear;
-    }
-
-    .row-slider:hover div {
-        color: #fffa70;
-        transition: .2s linear;
+        overflow: hidden;
     }
 
     .click-button {
@@ -82,18 +55,22 @@
     }
 
     .server-icon {
-        float: left;
-        width: 3em;
+        float: right;
+        width: 4em;
         background-color: #C4CFE5;
     }
 
+    .server-info {
+        display: inline;
+    }
+
+    .server-text {
+        text-align: center;
+        color: #424242;
+        background: gray;
+    }
+
     .server-name {
-        padding-top: 5px;
-        padding-left: 5px;
-        padding-right: 2px;
-        width: auto;
-        margin-right: 0;
-        font-size: 18px;
         color: #424242;
         background: gray;
     }
@@ -111,30 +88,29 @@
 
             const servers = JSON.parse(CPP_ServerData());
             servers.forEach(server => {
-                // Row div
-                let row = document.createElement("div");
-                row.classList.add("row");
-
                 // Text Div
                 let text = document.createElement("div");
-                text.classList.add("row-item", "row-text");
-                text.innerText = `${server["target"]}: ${server["description"]}`;
+                text.classList.add("row-item", "server-text");
+                text.innerText = `${server["description"]}`;
+
+                let server_information = document.createElement("div");
+                server_information.classList.add("server-info");
 
                 let server_icon = document.createElement("div");
                 server_icon.classList.add("row-item", "server-icon");
 
                 let server_name = document.createElement("div");
                 server_name.classList.add("row-item", "server-name");
-                server_name.innerText = "Localhost";
+                server_name.innerText = server["target"];
 
                 if (!server["connected"])
                     server_name.classList.add("outline-red");
 
-                row.appendChild(server_icon);
-                row.appendChild(server_name);
-                row.appendChild(text);
+                server_information.appendChild(server_name);
+                server_information.appendChild(text);
 
-                list.appendChild(row);
+                list.appendChild(server_icon);
+                list.appendChild(server_information);
             });
 
         }, 200);
@@ -142,8 +118,8 @@
 </script>
 <body>
 <h1 class="title">Multiplayer</h1>
-<section class="container" id="server-list">
-</section>
+<div class="container" id="server-list">
+</div>
 <div class="footer">
     <button type="button" class="btn click-button" onclick="CPP_MainMenuClick()">Main Menu</button>
 </div>

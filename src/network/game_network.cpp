@@ -54,7 +54,7 @@ void let::network::game::_process() {
     auto incoming = let::network::byte_buffer();
     auto processed_incoming = let::network::byte_buffer();
 //    while (_processing) {
-    _server_socket.receive(incoming);
+    _server_socket.receive(incoming, 0);
     while (incoming.size() > 0) {
 
         if (_compression_threshold != -1) {

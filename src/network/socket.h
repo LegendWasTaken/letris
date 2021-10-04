@@ -20,7 +20,7 @@ namespace let::network {
 
         void send(let::network::byte_buffer &data);
 
-        void receive(let::network::byte_buffer &data);
+        void receive(let::network::byte_buffer &data, size_t byte_size);
 
         void disconnect();
 

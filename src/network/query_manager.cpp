@@ -35,12 +35,39 @@ std::vector<let::network::query::queryable_server_info> let::network::query::que
         auto info = query::queryable_server_info();
         info.target = sock.target;
 
-        if (sock.socket == nullptr) {
+        if (sock.socket == nullptr || !sock.socket->connected()) {
             info.info.can_connect = false;
         }
         else if (!sock.info.has_value()) {
             try {
-                sock.socket->receive(buffer);
+                buffer.clear();
+
+                // The maximum size of a packet header is 6 bytes
+                sock.socket->receive(buffer, 6);
+
+                auto length = let::var_int();
+                auto packet_id = let::var_int();
+                let::network::decoder::read(buffer, length);
+                let::network::decoder::read(buffer, packet_id);
+                buffer.step_back(length.length() + packet_id.length());
+
+                /***
+                 * A quick breakdown of what's going on here,
+                 * we read 6 no matter what.
+                 *
+                 * First, we calculate how much we "overshot"
+                 * eg, if the header was only 2 bytes, we overshot by 4
+                 *
+                 * Then, to calculate how much we still need to read
+                 * We take the packet length, take away the size of the packet id, and the overshoot
+                 */
+
+                const auto overshot = 6 - (length.length() + packet_id.length());
+                const auto packet_data_length = int(length) - packet_id.length() - overshot;
+
+                sock.socket->receive(buffer, packet_data_length);
+
+
                 if (buffer.size() > 0) {
                     const auto server_data = let::packets::read<let::packets::state::status>::response(buffer);
 
@@ -55,7 +82,6 @@ std::vector<let::network::query::queryable_server_info> let::network::query::que
                 info.info.can_connect = false;
                 sock.socket->disconnect();
             }
-            buffer.clear();
         } else {
             info.info = sock.info.value();
         }

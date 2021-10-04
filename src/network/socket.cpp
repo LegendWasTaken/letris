@@ -20,24 +20,27 @@ void let::network::socket::send(let::network::byte_buffer &data) {
         fmt::print("There was en error writing to socket: \n\t{}", _socket.last_error_str());
 }
 
-void let::network::socket::receive(let::network::byte_buffer &data) {
+void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_size) {
     auto buffer = std::array<std::byte, 1024>();
-    while (true) {
+
+    auto total_read = size_t(0);
+
+    while (total_read < byte_size) {
+        const auto bytes_left = byte_size - total_read;
+        const auto to_read = glm::min(bytes_left, buffer.size());
+
         const auto read = ::recv(_socket.handle(), reinterpret_cast<char*>(buffer.data()),
-                                 int(buffer.size()), 0);
+                                 int(to_read), 0);
         if (read > 0) {
             data.write_bytes(buffer.data(), read);
-            continue;
+            total_read += read;
         }
-
-        if (read == 0)
-            break;
 
         if (read < 0)
         {
             const auto err_code = WSAGetLastError();
             if (err_code == WSAEWOULDBLOCK)
-                break;
+                continue;
             fmt::print("There was en error receiving to buffer. Error code: {}\n", err_code);
         }
     }
