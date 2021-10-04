@@ -129,7 +129,7 @@ int64_t let::ultralight_filesystem::ReadFromFile(ultralight::FileHandle handle, 
     return -1;
 }
 
-void let::ultralight_filesystem::CloseFile(ultralight::FileHandle &handle)
+void let::ultralight_filesystem::CloseFile(ultralight::FileHandle &handle) {
 ZoneScopedN("filesystem::close_file");
     if (auto file = _files.find(handle); file != _files.end())
         _files.erase(file);

@@ -55,7 +55,7 @@ void let::user_input_renderer::set_resolution(std::uint16_t width, std::uint16_t
 }
 
 void let::user_input_renderer::use(let::input_screen *screen) {
-    ZoneScopedN("window::display_frame");
+    ZoneScopedN("user_input_renderer::use");
     _current_screen = screen;
     _current_view = _renderer->get().CreateView(_size.x, _size.y, false, nullptr);
 
@@ -66,7 +66,7 @@ void let::user_input_renderer::use(let::input_screen *screen) {
 }
 
 void let::user_input_renderer::update(const update_context &update_ctx) {
-    ZoneScopedN("window::display_frame");
+    ZoneScopedN("user_input_renderer::update");
 #ifndef NDEBUG
     if (update_ctx.keyboard.is_key_down(logical::keyboard::key_code::key_f9)) {
         // Reload the HTML
