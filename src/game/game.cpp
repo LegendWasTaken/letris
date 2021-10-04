@@ -4,11 +4,13 @@ let::game::game(let::network::game *game_network, let::window *window, let::user
                 let::network::query *server_querier)
         : _game_network(game_network), _window(window), _ui_renderer(ui_renderer), _server_querier(server_querier),
           _current_resolution(window->resolution()) {
+    ZoneScopedN("game::constructor");
     _initialize_menus();
     _create_gpu_resources();
 }
 
 void let::game::start() {
+    ZoneScopedN("game::start");
     _window->set_texture_callback([this]() {
 
         const auto mouse = _window->mouse();
@@ -30,6 +32,7 @@ void let::game::start() {
 }
 
 void let::game::_initialize_menus() {
+    ZoneScopedN("game::initialize_menus");
     // Setup the main menu buttons
     _menus.main.on_multiplayer_click([this] {
         auto server_to_query = std::vector<let::network::query::queryable_server>();
@@ -87,6 +90,7 @@ void let::game::_initialize_menus() {
 }
 
 void let::game::_create_gpu_resources() {
+    ZoneScopedN("window::create_gpu_resources");
     glGenTextures(1, &_gpu.texture.target);
     glBindTexture(GL_TEXTURE_2D, _gpu.texture.target);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);

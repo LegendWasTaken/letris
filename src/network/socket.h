@@ -11,6 +11,8 @@
 #include <network/packets.h>
 #include <network/byte_buffer.h>
 
+#include <tracy/Tracy.hpp>
+
 namespace let::network {
     class socket {
     public:

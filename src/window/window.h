@@ -13,6 +13,8 @@
 #include <util/opengl.h>
 #include <glm/glm.hpp>
 
+#include <tracy/Tracy.hpp>
+
 namespace let {
     class window_init {
     public:

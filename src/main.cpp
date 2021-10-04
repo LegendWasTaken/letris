@@ -1,6 +1,7 @@
 #include <game/game.h>
 
 int main() {
+    ZoneScopedN("main");
     sockpp::socket_initializer sockInit {};
 
     let::window_init windowInit {};

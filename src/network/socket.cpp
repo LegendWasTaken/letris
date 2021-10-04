@@ -2,6 +2,7 @@
 
 let::network::socket::socket(const std::string &host, std::uint16_t port)
         : _socket({host, port}) {
+    ZoneScopedN("socket::construct");
     if (!_socket)
         fmt::print("Error connecting to [{}:{}]\n\tDescription: {}\n", host, port, _socket.last_error_str());
     else {
@@ -11,6 +12,7 @@ let::network::socket::socket(const std::string &host, std::uint16_t port)
 }
 
 void let::network::socket::send(let::network::byte_buffer &data) {
+    ZoneScopedN("socket::send");
     const auto byte_count = data.size();
     const auto bytes = data.next_bytes(byte_count);
     data.clear();
@@ -21,6 +23,8 @@ void let::network::socket::send(let::network::byte_buffer &data) {
 }
 
 void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_size) {
+    ZoneScopedN("socket::receive");
+
     auto buffer = std::array<std::byte, 1024>();
 
     auto total_read = size_t(0);
@@ -47,6 +51,7 @@ void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_
 }
 
 void let::network::socket::disconnect() {
+    ZoneScopedN("socket::disconnect");
     _socket.close();
 }
 

@@ -21,6 +21,8 @@
 #include <optional>
 #include <utility>
 
+#include <tracy/Tracy.hpp>
+
 #include <fmt/core.h>
 
 namespace let {

@@ -6,6 +6,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include <tracy/Tracy.hpp>
+
 namespace let {
     class ultralight_filesystem : public ultralight::FileSystem {
     private:

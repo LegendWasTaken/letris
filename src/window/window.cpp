@@ -7,6 +7,7 @@ let::window_init::window_init() {
 
 let::window::window(std::uint16_t width, std::uint16_t height, const std::string &title) :
         _width(width), _height(height) {
+    ZoneScopedN("window::constructor");
 
     // Todo: Figure out how to move this out and make it static, problem is gladLoad must be after make context current...
     glfwInit();
@@ -38,26 +39,32 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
 }
 
 bool let::window::should_close() const noexcept {
+    ZoneScopedN("window::should_close");
     return glfwWindowShouldClose(_window);
 }
 
 let::logical::mouse let::window::mouse() const noexcept {
+    ZoneScopedN("window::mouse");
     return _mouse;
 }
 
 let::logical::keyboard let::window::keyboard() const noexcept {
+    ZoneScopedN("window::keyboard");
     return _keyboard;
 }
 
 glm::ivec2 let::window::resolution() const noexcept {
+    ZoneScopedN("window::resolution");
     return glm::ivec2(_width, _height);
 }
 
 void let::window::set_texture_callback(std::function<std::optional<std::uint32_t>()> texture_callback) {
+    ZoneScopedN("window::set_texture_callback");
     _texture_callback = std::move(texture_callback);
 }
 
 void let::window::display_frame() {
+    ZoneScopedN("window::display_frame");
     glfwMakeContextCurrent(_window);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -80,11 +87,13 @@ void let::window::display_frame() {
 }
 
 void let::window::_glfw_cursor_position_callback(GLFWwindow *window, double x, double y) {
+    ZoneScopedN("window::cursor_position_callback");
     auto user_window = static_cast<let::window *>(glfwGetWindowUserPointer(window));
     user_window->_mouse.set_position({x, y});
 }
 
 void let::window::_glfw_mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    ZoneScopedN("window::mouse_button_callback");
     auto user_window = static_cast<let::window *>(glfwGetWindowUserPointer(window));
 
     auto mouse_button = let::logical::mouse::button::left;
@@ -116,6 +125,7 @@ void let::window::_glfw_mouse_button_callback(GLFWwindow *window, int button, in
 }
 
 void let::window::_glfw_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    ZoneScopedN("window::key_callback");
     auto user_window = static_cast<let::window *>(glfwGetWindowUserPointer(window));
 
     if (action == GLFW_RELEASE)

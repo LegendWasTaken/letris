@@ -1,11 +1,13 @@
 #include "ultralight_filesystem.h"
 
 bool let::ultralight_filesystem::FileExists(const ultralight::String16 &path) {
+    ZoneScopedN("filesystem::file_exists");
     const auto utf8_ultralight = ultralight::String(path).utf8();
     return std::filesystem::exists(std::string(utf8_ultralight.data()));
 }
 
 bool let::ultralight_filesystem::GetFileSize(ultralight::FileHandle handle, int64_t &result) {
+    ZoneScopedN("filesystem::get_file_size");
     if (const auto file = _files.find(handle); file != _files.end()) {
         result = std::filesystem::file_size(file->second.path);
         return true;
@@ -14,6 +16,7 @@ bool let::ultralight_filesystem::GetFileSize(ultralight::FileHandle handle, int6
 }
 
 bool let::ultralight_filesystem::GetFileMimeType(const ultralight::String16 &path, ultralight::String16 &result) {
+    ZoneScopedN("filesystem::get_file_mime_type");
     // Todo, create a lookup table here
     const auto string = std::string(ultralight::String(path).utf8().data());
 
@@ -101,6 +104,7 @@ bool let::ultralight_filesystem::GetFileMimeType(const ultralight::String16 &pat
 }
 
 ultralight::FileHandle let::ultralight_filesystem::OpenFile(const ultralight::String16 &path, bool open_for_writing) {
+    ZoneScopedN("filesystem::open_file");
     const auto string = std::string(ultralight::String(path).utf8().data());
 
     auto fstream = std::ifstream(string);
@@ -115,6 +119,7 @@ ultralight::FileHandle let::ultralight_filesystem::OpenFile(const ultralight::St
 }
 
 int64_t let::ultralight_filesystem::ReadFromFile(ultralight::FileHandle handle, char *data, int64_t length) {
+    ZoneScopedN("filesystem::read_file");
     if (const auto file = _files.find(handle); file != _files.end())
     {
         file->second.stream.read(data, length);
@@ -124,7 +129,8 @@ int64_t let::ultralight_filesystem::ReadFromFile(ultralight::FileHandle handle, 
     return -1;
 }
 
-void let::ultralight_filesystem::CloseFile(ultralight::FileHandle &handle) {
+void let::ultralight_filesystem::CloseFile(ultralight::FileHandle &handle)
+ZoneScopedN("filesystem::close_file");
     if (auto file = _files.find(handle); file != _files.end())
         _files.erase(file);
 }

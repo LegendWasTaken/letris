@@ -14,6 +14,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL
     endif ()
 endif ()
 
+option(LET_USE_TRACY "" OFF)
 option(LETRIS_USE_RELATIVE_ASSET_PATH "" OFF)
 
 if (LETRIS_USE_RELATIVE_ASSET_PATH)
@@ -78,9 +79,19 @@ add_executable(Letris
         # Common
         src/common/logical_devices.cpp
         src/common/logical_devices.h
+
+        # Tracy
+        src/tracy/TracyClient.cpp
         )
+
+if (LET_USE_TRACY)
+    message("Tracy has been enabled")
+    set(LET_TRACY_MACRO -DTRACY_ENABLE)
+else ()
+    set(LET_TRACY_MACRO "")
+endif ()
 
 target_link_directories(Letris PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
 target_include_directories(Letris PRIVATE external src)
 target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore)
-target_compile_definitions(Letris PRIVATE GLFW_INCLUDE_NONE -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")
+target_compile_definitions(Letris PRIVATE GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")

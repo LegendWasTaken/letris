@@ -22,6 +22,7 @@ let::main_menu::main_menu() {
 }
 
 let::input_screen::register_data let::main_menu::manifest() const noexcept {
+    ZoneScopedN("menu::main_menu::manifest");
     auto data = register_data();
 
     data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/main_menu.html";
@@ -54,6 +55,7 @@ void let::user_input_renderer::set_resolution(std::uint16_t width, std::uint16_t
 }
 
 void let::user_input_renderer::use(let::input_screen *screen) {
+    ZoneScopedN("window::display_frame");
     _current_screen = screen;
     _current_view = _renderer->get().CreateView(_size.x, _size.y, false, nullptr);
 
@@ -64,7 +66,7 @@ void let::user_input_renderer::use(let::input_screen *screen) {
 }
 
 void let::user_input_renderer::update(const update_context &update_ctx) {
-
+    ZoneScopedN("window::display_frame");
 #ifndef NDEBUG
     if (update_ctx.keyboard.is_key_down(logical::keyboard::key_code::key_f9)) {
         // Reload the HTML
@@ -178,10 +180,12 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
 }
 
 void let::user_input_renderer::render() {
+    ZoneScopedN("window::display_frame");
     _renderer->get().Render();
 }
 
 void let::user_input_renderer::read_into(std::uint32_t texture) {
+    ZoneScopedN("window::display_frame");
     if (_current_screen == nullptr)
         throw read_into_exception();
 
@@ -263,6 +267,7 @@ let::graphics_menu::graphics_menu() {
 }
 
 let::input_screen::register_data let::graphics_menu::manifest() const noexcept {
+    ZoneScopedN("menu::graphics_menu::manifest");
     auto data = register_data();
 
     data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/graphics_menu.html";
@@ -282,6 +287,7 @@ let::multiplayer_menu::multiplayer_menu() {
 }
 
 let::input_screen::register_data let::multiplayer_menu::manifest() const noexcept {
+    ZoneScopedN("menu::multiplayer::manifest");
     auto data = register_data();
 
     data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/multiplayer_menu.html";

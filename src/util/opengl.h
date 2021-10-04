@@ -40,6 +40,8 @@ namespace let::opengl {
         }
     };
     [[nodiscard]] inline std::uint32_t create_shader(std::string_view path) {
+        ZoneScopedN("opengl::create_shader");
+
         auto shader_stream = std::ifstream(std::string(path));
         auto shader_string_stream = std::stringstream();
         shader_string_stream << shader_stream.rdbuf();
@@ -85,6 +87,7 @@ namespace let::opengl {
     template <typename ...Shaders>
     [[nodiscard]] inline GLuint create_program(Shaders&&... shaders)
     {
+        ZoneScopedN("opengl::create_program");
         const auto handle = glCreateProgram();
 
         for (const auto shader : {shaders...})

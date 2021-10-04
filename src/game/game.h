@@ -5,6 +5,7 @@
 #include <network/query_manager.h>
 #include <window/window.h>
 #include <ui/user_input.h>
+#include <tracy/Tracy.hpp>
 
 namespace let {
     class game {
