@@ -16,6 +16,7 @@ endif ()
 
 option(LET_USE_TRACY "" OFF)
 option(LETRIS_USE_RELATIVE_ASSET_PATH "" OFF)
+option(LETRIS_TESTS "" OFF)
 
 if (LETRIS_USE_RELATIVE_ASSET_PATH)
     message("Using relative asset path")
@@ -28,12 +29,9 @@ endif()
 
 add_subdirectory(external)
 
-add_executable(Letris
+add_library(Letris_lib
         # Glad.c
         external/glad/glad.c
-
-        # Main
-        src/main.cpp
 
         # Network
         src/network/byte_buffer.cpp
@@ -91,7 +89,14 @@ else ()
     set(LET_TRACY_MACRO "")
 endif ()
 
-target_link_directories(Letris PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
-target_include_directories(Letris PRIVATE external src)
-target_link_libraries(Letris glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore)
-target_compile_definitions(Letris PRIVATE GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")
+target_link_directories(Letris_lib PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
+target_include_directories(Letris_lib PUBLIC external src)
+target_link_libraries(Letris_lib PUBLIC glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore daw::daw-header-libraries)
+target_compile_definitions(Letris_lib PUBLIC GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")
+
+add_executable(Letris src/main.cpp)
+target_link_libraries(Letris PUBLIC Letris_lib)
+
+if (LETRIS_TESTS)
+    add_subdirectory(tests)
+endif()

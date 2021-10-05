@@ -43,4 +43,10 @@ FetchContent_Declare(
         GIT_TAG v3.10.2
 )
 
-FetchContent_MakeAvailable(glfw glm sockpp fmt json zlib)
+FetchContent_Declare(
+        daw
+        GIT_REPOSITORY https://github.com/beached/header_libraries
+        GIT_TAG v1.29.7
+)
+
+FetchContent_MakeAvailable(glfw glm sockpp fmt json zlib daw)

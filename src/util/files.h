@@ -5,6 +5,8 @@
 #include <sstream>
 #include <filesystem>
 
+#include <tracy/Tracy.hpp>
+
 namespace let {
     [[nodiscard]] inline std::string read_file(const std::filesystem::path &path) {
         ZoneScopedN("util::read_file");

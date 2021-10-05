@@ -394,8 +394,6 @@ namespace let::lut {
                 return GK_MENU;
             case GLFW_KEY_RIGHT_SUPER:
                 return GK_RWIN;
-            case GLFW_KEY_MENU:
-                return GK_UNKNOWN;
             default:
                 return GK_UNKNOWN;
         }

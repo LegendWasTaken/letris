@@ -9,7 +9,7 @@ bool let::ultralight_filesystem::FileExists(const ultralight::String16 &path) {
 bool let::ultralight_filesystem::GetFileSize(ultralight::FileHandle handle, int64_t &result) {
     ZoneScopedN("filesystem::get_file_size");
     if (const auto file = _files.find(handle); file != _files.end()) {
-        result = std::filesystem::file_size(file->second.path);
+        result = file->second.file.size();
         return true;
     }
     return false;
@@ -98,8 +98,6 @@ bool let::ultralight_filesystem::GetFileMimeType(const ultralight::String16 &pat
     if (view.ends_with(".3g2")) result = "video/3gpp2";
     if (view.ends_with(".7z")) result = "application/x-7z-compressed";
 
-    // If it's not in here and we try to use it ohwell...
-
     return true;
 }
 
@@ -107,12 +105,10 @@ ultralight::FileHandle let::ultralight_filesystem::OpenFile(const ultralight::St
     ZoneScopedN("filesystem::open_file");
     const auto string = std::string(ultralight::String(path).utf8().data());
 
-    auto fstream = std::ifstream(string);
-    if (fstream.bad())
-        return ultralight::invalidFileHandle;
+    auto mapped_file = daw::filesystem::memory_mapped_file_t<uint8_t>(string);
 
-    _files[_files.size()] = {
-            .stream = std::move(fstream),
+    _files[_files.size()] = loaded_file{
+            .file = std::move(mapped_file),
             .path = string};
 
     return _files.size() - 1;
@@ -122,8 +118,8 @@ int64_t let::ultralight_filesystem::ReadFromFile(ultralight::FileHandle handle, 
     ZoneScopedN("filesystem::read_file");
     if (const auto file = _files.find(handle); file != _files.end())
     {
-        file->second.stream.read(data, length);
-        return file->second.stream.gcount();
+        std::memcpy(data, file->second.file.data(), length);
+        return length;
     }
 
     return -1;

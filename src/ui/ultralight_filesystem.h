@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <daw/daw_memory_mapped_file.h>
 
 #include <tracy/Tracy.hpp>
 
@@ -12,7 +13,7 @@ namespace let {
     class ultralight_filesystem : public ultralight::FileSystem {
     private:
         struct loaded_file {
-            std::ifstream stream;
+            daw::filesystem::memory_mapped_file_t<uint8_t> file;
             std::string path;
         };
         std::unordered_map<size_t, loaded_file> _files;

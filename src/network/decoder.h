@@ -71,40 +71,40 @@ namespace let::network::decoder {
         auto int_val = uint64_t();
         read(buffer, int_val);
         auto double_value = 0.0;
-        std::memcpy(&double_value, &int_val, 4);
+        std::memcpy(&double_value, &int_val, 8);
         value = double_value;
     }
 
     inline void read(let::network::byte_buffer &buffer, let::var_int &value) {
-        int result = 0;
-        int offset = 0;
-        int8_t current_byte;
+        int numRead = 0;
+        int32_t result  = 0;
+        uint8_t read;
         do {
-            if (offset == 35)
-                throw std::runtime_error("Read var-int that's too large!");
+            read       = static_cast<uint8_t>(buffer.next_byte());
+            long val = (read & 0b01111111);
+            result |= (val << (7 * numRead));
 
-            current_byte = static_cast<int8_t>(buffer.next_byte());
-            result |= (current_byte & 0b01111111) << offset;
+            numRead++;
+            if (numRead > 5) throw std::runtime_error("VarLong too big");
+        } while ((read & 0b10000000) != 0);
 
-            offset += 7;
-        } while ((current_byte & 0b10000000) != 0);
-
-        value = var_int(result);
+        value.val = result;
     }
 
     inline void read(let::network::byte_buffer &buffer, let::var_long &value) {
-        // Directly from wiki.vg
-        auto num_read = std::int32_t(0);
-        auto result = std::int32_t(0);
-        auto read = std::int8_t(0);
+        int numRead = 0;
+        uint64_t result  = 0;
+        uint8_t read;
         do {
-            read = static_cast<std::int8_t>(buffer.next_byte());
-            auto val = (read & 0b01111111);
-            result |= (val << (7 * num_read++));
-            if (num_read > 10) { throw std::runtime_error("Read var-long that's too large!"); }
+            read       = static_cast<uint8_t>(buffer.next_byte());
+            uint64_t val = (read & 0b01111111);
+            result |= (val << (7 * numRead));
+
+            numRead++;
+            if (numRead > 10) throw std::runtime_error("VarLong too big");
         } while ((read & 0b10000000) != 0);
 
-        value = var_long(result);
+        value.val = result;
     }
 
     inline void read(let::network::byte_buffer &buffer, std::string &value) {

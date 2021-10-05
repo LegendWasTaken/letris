@@ -80,27 +80,25 @@ namespace let::network::encoder {
     }
 
     inline void write(let::network::byte_buffer &buffer, let::var_int value) {
-        while (true) {
-            if ((value.val & 0xFFFFFF80) == 0) {
-                write(buffer, std::byte(value.val));
-                return;
-            }
-
-            write(buffer, std::byte(value.val & 0x7F | 0x80));
-            value.val >>= 7;
-        }
+        int written = 0;
+        auto u_value = static_cast<uint32_t>(value.val);
+        do {
+            auto temp = static_cast<uint8_t>(u_value & 0b01111111);
+            u_value >>= 7;
+            if (u_value != 0) { temp |= 0b10000000; }
+            buffer.write_byte(std::byte(temp));
+            written += 1;
+        } while (u_value != 0);
     }
 
     inline void write(let::network::byte_buffer &buffer, let::var_long value) {
-        while (true) {
-            if ((value.val & 0xFFFFFFFFFFFFFF80) == 0) {
-                write(buffer, std::byte(value.val));
-                return;
-            }
-
-            write(buffer, std::byte(value.val & 0x7F | 0x80));
-            value.val >>= 7;
-        }
+        auto u_value = static_cast<uint64_t>(value.val);
+        do {
+            auto temp = static_cast<uint8_t>(u_value & 0b01111111);
+            u_value >>= 7;
+            if (u_value != 0) { temp |= 0b10000000; }
+            buffer.write_byte(std::byte(temp));
+        } while (u_value != 0);
     }
 
     inline void write(let::network::byte_buffer &buffer, const std::string &value) {
