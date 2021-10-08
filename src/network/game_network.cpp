@@ -519,8 +519,8 @@ void let::network::game::decompress_packet(let::network::byte_buffer &source, si
     const auto result = zng_uncompress(reinterpret_cast<uint8_t *>(decompressed_data.data()), &decompressed_size,
                    reinterpret_cast<uint8_t *>(source.data()), compressed_size);
 
-    if (result != Z_OK)
-        fmt::print("Decompression Failed: {}", zng_zError(result));
+//    if (result != Z_OK)
+//        fmt::print("Decompression Failed: {}", zng_zError(result));
 
 }
 

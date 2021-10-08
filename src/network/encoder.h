@@ -3,8 +3,6 @@
 #include <network/byte_buffer.h>
 #include <network/types.h>
 
-#include <fmt/core.h>
-
 #include <string>
 #include <stdexcept>
 

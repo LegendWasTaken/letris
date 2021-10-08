@@ -6,8 +6,6 @@
 #include <sockpp/tcp_connector.h>
 #include <sockpp/socket.h>
 
-#include <fmt/core.h>
-
 #include <network/packets.h>
 #include <network/byte_buffer.h>
 

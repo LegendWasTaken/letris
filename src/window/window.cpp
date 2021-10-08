@@ -1,7 +1,5 @@
 #include "window.h"
 
-#include <fmt/core.h>
-
 let::window_init::window_init() {
 }
 
@@ -32,9 +30,9 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
                 std::string(LETRIS_ASSET_PATH) + "shaders/fullscreen_texture/shader.frag");
         _fullscreen_program = let::opengl::create_program(_fullscreen_vert, _fullscreen_frag);
     } catch (opengl::shader_compile_exception &ex) {
-        fmt::print("Exception creating shader: {}, with error: \n{}\n", ex.path(), ex.error());
+//        fmt::print("Exception creating shader: {}, with error: \n{}\n", ex.path(), ex.error());
     } catch (opengl::program_link_exception &ex) {
-        fmt::print("Exception linking program: {}, with error: \n{}\n", ex.pid(), ex.error());
+//        fmt::print("Exception linking program: {}, with error: \n{}\n", ex.pid(), ex.error());
     }
 }
 

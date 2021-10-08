@@ -3,12 +3,12 @@
 let::network::socket::socket(const std::string &host, std::uint16_t port)
         : _socket({host, port}) {
     ZoneScopedN("socket::construct");
-    if (!_socket)
-        fmt::print("Error connecting to [{}:{}]\n\tDescription: {}\n", host, port, _socket.last_error_str());
-    else {
-        fmt::print("Created socket connection \n\t{}\n", _socket.address().to_string());
+//    if (!_socket)
+//        fmt::print("Error connecting to [{}:{}]\n\tDescription: {}\n", host, port, _socket.last_error_str());
+//    else {
+//        fmt::print("Created socket connection \n\t{}\n", _socket.address().to_string());
         _socket.set_non_blocking(true);
-    }
+//    }
 }
 
 void let::network::socket::send(let::network::byte_buffer &data) {
@@ -18,8 +18,8 @@ void let::network::socket::send(let::network::byte_buffer &data) {
     data.clear();
 
     auto value = _socket.write(bytes.data(), bytes.size());
-    if (value < 0)
-        fmt::print("There was en error writing to socket: \n\t{}", _socket.last_error_str());
+//    if (value < 0)
+//        fmt::print("There was en error writing to socket: \n\t{}", _socket.last_error_str());
 }
 
 void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_size) {
@@ -45,7 +45,7 @@ void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_
             const auto err_code = WSAGetLastError();
             if (err_code == WSAEWOULDBLOCK)
                 continue;
-            fmt::print("There was en error receiving to buffer. Error code: {}\n", err_code);
+//            fmt::print("There was en error receiving to buffer. Error code: {}\n", err_code);
         }
     }
 }

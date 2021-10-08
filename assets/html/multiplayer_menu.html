@@ -117,6 +117,9 @@
 
                 server_information.appendChild(server_name);
                 server_information.appendChild(text);
+                server_information.addEventListener('click', () => {
+                    CPP_ServerClick(server["target"].toString());
+                });
 
                 list.appendChild(server_icon);
                 list.appendChild(server_information);

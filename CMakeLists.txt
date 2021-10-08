@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
 project(Letris)
 
+set(CMAKE_PREFIX_PATH "C:/Program Files (x86)/my_project")
+
 set(CMAKE_CXX_STANDARD 20)
 
 if (CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -80,7 +82,7 @@ add_library(Letris_lib
 
         # Tracy
         src/tracy/TracyClient.cpp
-        )
+        src/common/exception.cpp src/common/exception.h)
 
 if (LET_USE_TRACY)
     message("Tracy has been enabled")
@@ -91,7 +93,7 @@ endif ()
 
 target_link_directories(Letris_lib PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
 target_include_directories(Letris_lib PUBLIC external src)
-target_link_libraries(Letris_lib PUBLIC glm glfw sockpp-static fmt nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore daw::daw-header-libraries)
+target_link_libraries(Letris_lib PUBLIC glm glfw sockpp-static nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore daw::daw-header-libraries spdlog::spdlog)
 target_compile_definitions(Letris_lib PUBLIC GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")
 
 add_executable(Letris src/main.cpp)

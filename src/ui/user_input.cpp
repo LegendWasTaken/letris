@@ -284,6 +284,7 @@ void let::graphics_menu::on_main_menu_click(const std::function<void()> &callbac
 let::multiplayer_menu::multiplayer_menu() {
     _main_menu_click_callback = js_callback("CPP_MainMenuClick");
     _server_data_callback = js_callback("CPP_ServerData");
+    _server_click_callback = js_callback("CPP_ServerClick");
 }
 
 let::input_screen::register_data let::multiplayer_menu::manifest() const noexcept {
@@ -294,6 +295,7 @@ let::input_screen::register_data let::multiplayer_menu::manifest() const noexcep
 
     data.callbacks.push_back(_main_menu_click_callback);
     data.callbacks.push_back(_server_data_callback);
+    data.callbacks.push_back(_server_click_callback);
 
     return data;
 }
@@ -305,4 +307,8 @@ void let::multiplayer_menu::on_main_menu_click(const std::function<void()> &call
 void let::multiplayer_menu::on_server_data_request(
         const std::function<ultralight::JSValue(ultralight::JSArgs)> &callback) {
     _server_data_callback.bind(callback);
+}
+
+void let::multiplayer_menu::on_server_click(const std::function<void(ultralight::JSArgs)> &server_click) {
+    _server_click_callback.bind(server_click);
 }

@@ -23,8 +23,6 @@
 
 #include <tracy/Tracy.hpp>
 
-#include <fmt/core.h>
-
 namespace let {
 
     class ultralight_init {
@@ -113,16 +111,18 @@ namespace let {
     private:
         js_callback _main_menu_click_callback;
         js_callback _server_data_callback;
+        js_callback _server_click_callback;
 
     public:
         multiplayer_menu();
 
         [[nodiscard]] input_screen::register_data manifest() const noexcept override;
 
-
         void on_main_menu_click(const std::function<void()> &callback);
 
         void on_server_data_request(const std::function<ultralight::JSValue(ultralight::JSArgs)> &callback);
+
+        void on_server_click(const std::function<void(ultralight::JSArgs)> &server_click);
     };
 
     class graphics_menu : public input_screen {

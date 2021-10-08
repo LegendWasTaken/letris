@@ -6,6 +6,7 @@
 #include <window/window.h>
 #include <ui/user_input.h>
 #include <tracy/Tracy.hpp>
+#include <common/exception.h>
 
 namespace let {
     class game {

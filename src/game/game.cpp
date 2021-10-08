@@ -86,6 +86,18 @@ void let::game::_initialize_menus() {
         return ultralight::JSValue(nlohmann::to_string(json).c_str());
     });
 
+    _menus.multiplayer.on_server_click([this](ultralight::JSArgs args) {
+        const auto server_name = args[0].ToString();
+
+        // Getting it to go from a JSString to std::string is a major pain
+        const auto opaque_string = server_name.operator OpaqueJSString *();
+        const auto str_len = JSStringGetLength(opaque_string);
+        auto server_name_str = std::string();
+        server_name_str.resize(str_len);
+        JSStringGetUTF8CString(opaque_string, server_name_str.data(), str_len);
+        std::cout << "Attempting to join server " << server_name_str << std::endl;
+    });
+
     _ui_renderer->use(&_menus.main);
 }
 
@@ -99,6 +111,8 @@ void let::game::_create_gpu_resources() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _current_resolution.x, _current_resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  nullptr);
+
+    LET_EXCEPTION(let::exception::source_type::window, "Failed to generate GPU resources");
 }
 
 let::game_builder &let::game_builder::with_network(let::network::game &game_network) {

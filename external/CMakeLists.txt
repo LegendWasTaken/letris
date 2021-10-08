@@ -23,12 +23,6 @@ FetchContent_Declare(
         GIT_TAG v0.7
 )
 
-FetchContent_Declare(
-        fmt
-        GIT_REPOSITORY https://github.com/fmtlib/fmt
-        GIT_TAG 7.1.3
-)
-
 option(ZLIB_ENABLE_TESTS "" OFF)
 option(WITH_NATIVE_INSTRUCTIONS "" ON)
 FetchContent_Declare(
@@ -49,4 +43,11 @@ FetchContent_Declare(
         GIT_TAG v1.29.7
 )
 
-FetchContent_MakeAvailable(glfw glm sockpp fmt json zlib daw)
+option(QUILL_FMT_EXTERNAL "" ON)
+FetchContent_Declare(
+        fc_spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog
+        GIT_TAG        v1.9.2
+)
+
+FetchContent_MakeAvailable(glfw glm sockpp json zlib daw fc_spdlog)
