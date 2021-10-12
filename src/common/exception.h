@@ -12,7 +12,7 @@
 namespace let {
     class exception : std::exception {
     private:
-        std::array<std::string, 7> _source_type_lut = {
+        std::array<std::string, 8> _source_type_lut = {
             "network",
             "render",
             "window",
@@ -20,6 +20,7 @@ namespace let {
             "physics",
             "nbt",
             "opengl",
+            "world",
         };
     public:
         // Hey Caio, if you add one here. Remember to update the array above (maybe it's moved), and the test for it
@@ -32,6 +33,7 @@ namespace let {
             physics,
             nbt,
             opengl,
+            world,
         };
 
         struct source {

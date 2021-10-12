@@ -12,6 +12,8 @@ namespace let::network
 
     explicit byte_buffer(std::size_t initial_size);
 
+    byte_buffer(const byte_buffer &other);
+
     void write_byte(std::byte byte);
 
     void write_bytes(const std::byte* bytes, size_t count);
@@ -39,6 +41,8 @@ namespace let::network
     [[nodiscard]] std::size_t capacity_left() const noexcept;
 
     [[nodiscard]] bool empty() const noexcept;
+
+    [[nodiscard]] bool has_left() const noexcept;
 
   private:
 

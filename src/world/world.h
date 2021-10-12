@@ -1,14 +1,15 @@
 #ifndef LETRIS_WORLD_H
 #define LETRIS_WORLD_H
 
-#include <string>
+#include <common/network/packets.h>
+#include <common/exception.h>
 
 namespace let {
     class world {
     public:
         world() = default;
 
-        void join(const std::string &server);
+        void process_packets(let::network::byte_buffer &buffer);
 
     private:
 

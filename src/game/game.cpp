@@ -29,28 +29,45 @@ void let::game::start() {
     _running = true;
 
     auto world_thread = std::thread([this]() {
-        while (_running) {
-            if (_game_network->status() == network::game::connection_status::connected ||
-                _game_network->status() == network::game::connection_status::connecting) {
-                _game_network->_process();
+        try {
+            while (_running) {
+                if (_game_network->status() == network::game::connection_status::connected ||
+                    _game_network->status() == network::game::connection_status::connecting) {
+                    _game_network->_process();
 
-                const auto incoming = _game_network->incoming();
+                    auto incoming = _game_network->incoming();
+                    _world->process_packets(incoming);
 
-                const auto a = 5;
+                } else {
+                    auto target_server = static_cast<std::string>(_server_to_join.value());
 
-            } else {
-                auto target_server = static_cast<std::string>(_server_to_join.value());
+                    if (!target_server.empty()) {
+                        spdlog::info("Attempting to join: {}", target_server);
 
-                if (!target_server.empty()) {
-                    spdlog::info("Attempting to join: {}", target_server);
-
-                    // Todo: Custom ports
-                    _game_network->connect(target_server, 25565);
+                        // Todo: Custom ports
+                        _game_network->connect(target_server, 25565);
 
 
-                    static_cast<std::string &>(_server_to_join.value()).clear();
+                        static_cast<std::string &>(_server_to_join.value()).clear();
+                    }
                 }
             }
+        } catch (const let::exception &exception) {
+            const auto source = exception.where();
+            spdlog::critical("Experienced an unrecoverable exception: "
+                             "\n\tReason: {}"
+                             "\n\tType: {}"
+                             "\n\tLocation: {}:{}",
+                             exception.what(), source.type, source.file, source.line);
+            _running = false;
+        } catch (const std::exception &exception) {
+            spdlog::critical("Experienced a C++ exception: "
+                             "\n\tReason: {}",
+                             exception.what());
+            _running = false;
+        } catch (...) {
+            spdlog::critical("Experienced an unknown exception, the dirt gods aren't happy");
+            _running = false;
         }
     });
 

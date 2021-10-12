@@ -31,8 +31,8 @@ namespace let::network {
         void send_data(const std::vector<std::byte> &data);
 
         /// \brief Get the incoming game packet data, only valid if mode is [game]
-        /// \return Incoming packet data as a byte vector
-        [[nodiscard]] std::vector<std::byte> incoming();
+        /// \return Incoming packet data
+        [[nodiscard]] let::network::byte_buffer incoming();
 
         enum class connection_status {
             connecting,

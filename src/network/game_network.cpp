@@ -15,8 +15,8 @@ void let::network::game::send_data(const std::vector<std::byte> &data) {
 
 }
 
-std::vector<std::byte> let::network::game::incoming() {
-    auto out = _incoming.next_bytes(_incoming.size());
+let::network::byte_buffer let::network::game::incoming() {
+    auto out = _incoming;
     _incoming.clear();
     return out;
 }

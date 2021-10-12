@@ -29,22 +29,24 @@ void let::packets::write<let::packets::state::play>::keep_alive(let::network::by
     let::network::encoder::write(buffer, id);
 }
 
-void let::packets::write<let::packets::state::play>::chat_message(let::network::byte_buffer &buffer, const std::string &message) {
+void let::packets::write<let::packets::state::play>::chat_message(let::network::byte_buffer &buffer,
+                                                                  const std::string &message) {
 
     // Calculate size of string
     write_header(buffer, let::var_int(message.size()).length() + message.size() + 1, 0x1);
     let::network::encoder::write(buffer, message);
 }
 
-void let::packets::write<let::packets::state::play>::use_entity(let::network::byte_buffer &buffer, let::var_int target, let::var_int type, std::optional<glm::vec3> target_pos) {
+void let::packets::write<let::packets::state::play>::use_entity(let::network::byte_buffer &buffer, let::var_int target,
+                                                                let::var_int type,
+                                                                std::optional<glm::vec3> target_pos) {
     const auto length = 1 + target.length() + type.length() + (target_pos.has_value() ? sizeof(float) * 3 : 0);
     write_header(buffer, length, 0x2);
 
     let::network::encoder::write(buffer, target);
     let::network::encoder::write(buffer, type);
 
-    if (target_pos.has_value())
-    {
+    if (target_pos.has_value()) {
         const auto pos = target_pos.value();
 
         let::network::encoder::write(buffer, pos.x);
@@ -58,7 +60,8 @@ void let::packets::write<let::packets::state::play>::player(let::network::byte_b
     let::network::encoder::write(buffer, on_ground);
 }
 
-void let::packets::write<let::packets::state::play>::player_position(let::network::byte_buffer &buffer, double x, double feet_y, double z, bool on_ground) {
+void let::packets::write<let::packets::state::play>::player_position(let::network::byte_buffer &buffer, double x,
+                                                                     double feet_y, double z, bool on_ground) {
     write_header(buffer, 26, 0x4);
     let::network::encoder::write(buffer, x);
     let::network::encoder::write(buffer, feet_y);
@@ -66,14 +69,19 @@ void let::packets::write<let::packets::state::play>::player_position(let::networ
     let::network::encoder::write(buffer, on_ground);
 }
 
-void let::packets::write<let::packets::state::play>::player_look(let::network::byte_buffer &buffer, float yaw, float pitch, bool on_ground) {
+void
+let::packets::write<let::packets::state::play>::player_look(let::network::byte_buffer &buffer, float yaw, float pitch,
+                                                            bool on_ground) {
     write_header(buffer, 10, 0x5);
     let::network::encoder::write(buffer, yaw);
     let::network::encoder::write(buffer, pitch);
     let::network::encoder::write(buffer, on_ground);
 }
 
-void let::packets::write<let::packets::state::play>::player_position_and_look(let::network::byte_buffer &buffer, double x, double feet_y, double z, float yaw, float pitch, bool on_ground) {
+void
+let::packets::write<let::packets::state::play>::player_position_and_look(let::network::byte_buffer &buffer, double x,
+                                                                         double feet_y, double z, float yaw,
+                                                                         float pitch, bool on_ground) {
     write_header(buffer, 26, 0x6);
     let::network::encoder::write(buffer, yaw);
     let::network::encoder::write(buffer, pitch);
@@ -83,20 +91,25 @@ void let::packets::write<let::packets::state::play>::player_position_and_look(le
     let::network::encoder::write(buffer, on_ground);
 }
 
-void let::packets::write<let::packets::state::play>::player_digging(let::network::byte_buffer &buffer, std::byte status, glm::ivec3 position, std::byte face) {
+void let::packets::write<let::packets::state::play>::player_digging(let::network::byte_buffer &buffer, std::byte status,
+                                                                    glm::ivec3 position, std::byte face) {
     write_header(buffer, 11, 0x7);
     let::network::encoder::write(buffer, status);
     let::network::encoder::write(buffer, position);
     let::network::encoder::write(buffer, face);
 }
 
-void let::packets::write<let::packets::state::play>::player_block_placement(let::network::byte_buffer &buffer, glm::ivec3 pos, std::byte face, let::slot item, std::byte cursor_x, std::byte cursor_y, std::byte cursor_z) {
-     write_header(buffer, 10, 0x8);
-     // God help me when I write this packet oml
-     throw std::runtime_error("Unimplemented packet attempted");
+void let::packets::write<let::packets::state::play>::player_block_placement(let::network::byte_buffer &buffer,
+                                                                            glm::ivec3 pos, std::byte face,
+                                                                            let::slot item, std::byte cursor_x,
+                                                                            std::byte cursor_y, std::byte cursor_z) {
+    write_header(buffer, 10, 0x8);
+    // God help me when I write this packet oml
+    throw std::runtime_error("Unimplemented packet attempted");
 }
 
-void let::packets::write<let::packets::state::play>::held_item_change(let::network::byte_buffer &buffer, std::int16_t slot) {
+void
+let::packets::write<let::packets::state::play>::held_item_change(let::network::byte_buffer &buffer, std::int16_t slot) {
     write_header(buffer, 3, 0x9);
     let::network::encoder::write(buffer, slot);
 }
@@ -105,23 +118,27 @@ void let::packets::write<let::packets::state::play>::animation(let::network::byt
     write_header(buffer, 1, 0xa);
 }
 
-void let::packets::write<let::packets::state::play>::entity_action(let::network::byte_buffer &buffer, let::var_int entity, let::var_int action, let::var_int action_parameter) {
+void
+let::packets::write<let::packets::state::play>::entity_action(let::network::byte_buffer &buffer, let::var_int entity,
+                                                              let::var_int action, let::var_int action_parameter) {
     write_header(buffer, 1 + entity.length() + action.length() + action_parameter.length(), 0xb);
     let::network::encoder::write(buffer, entity);
     let::network::encoder::write(buffer, action);
     let::network::encoder::write(buffer, action_parameter);
 }
 
-void let::packets::write<let::packets::state::play>::steer_vehicle(let::network::byte_buffer &buffer, float sideways, float forward, std::uint8_t flags) {
+void let::packets::write<let::packets::state::play>::steer_vehicle(let::network::byte_buffer &buffer, float sideways,
+                                                                   float forward, std::uint8_t flags) {
     write_header(buffer, 10, 0xc);
     let::network::encoder::write(buffer, sideways);
     let::network::encoder::write(buffer, forward);
     let::network::encoder::write(buffer, flags);
 }
 
-void let::packets::write<let::packets::state::play>::close_window(let::network::byte_buffer &buffer, std::uint8_t window_id) {
-     write_header(buffer, 2, 0xd);
-     let::network::encoder::write(buffer, window_id);
+void let::packets::write<let::packets::state::play>::close_window(let::network::byte_buffer &buffer,
+                                                                  std::uint8_t window_id) {
+    write_header(buffer, 2, 0xd);
+    let::network::encoder::write(buffer, window_id);
 }
 
 void let::packets::write<let::packets::state::play>::click_window(let::network::byte_buffer &buffer) {
@@ -129,7 +146,9 @@ void let::packets::write<let::packets::state::play>::click_window(let::network::
     throw std::runtime_error("Unimplemented packet attempted");
 }
 
-void let::packets::write<let::packets::state::play>::confirm_transaction(let::network::byte_buffer &buffer, std::byte window_id, std::int16_t action_number, bool accepted) {
+void let::packets::write<let::packets::state::play>::confirm_transaction(let::network::byte_buffer &buffer,
+                                                                         std::byte window_id,
+                                                                         std::int16_t action_number, bool accepted) {
     write_header(buffer, 5, 0xf);
     let::network::encoder::write(buffer, window_id);
     let::network::encoder::write(buffer, action_number);
@@ -141,10 +160,12 @@ void let::packets::write<let::packets::state::play>::creative_inventory_action(l
     throw std::runtime_error("Unimplemented packet attempted");
 }
 
-void let::packets::write<let::packets::state::play>::enchant_item(let::network::byte_buffer &buffer, std::byte window_id, std::byte enchantment) {
-     write_header(buffer, 3, 0x11);
-     let::network::encoder::write(buffer, window_id);
-     let::network::encoder::write(buffer, enchantment);
+void
+let::packets::write<let::packets::state::play>::enchant_item(let::network::byte_buffer &buffer, std::byte window_id,
+                                                             std::byte enchantment) {
+    write_header(buffer, 3, 0x11);
+    let::network::encoder::write(buffer, window_id);
+    let::network::encoder::write(buffer, enchantment);
 }
 
 void let::packets::write<let::packets::state::play>::update_sign(let::network::byte_buffer &buffer) {
@@ -152,14 +173,18 @@ void let::packets::write<let::packets::state::play>::update_sign(let::network::b
     throw std::runtime_error("Unimplemented packet attempted");
 }
 
-void let::packets::write<let::packets::state::play>::player_abilities(let::network::byte_buffer &buffer, std::byte flags, float flying_speed, float walking_speed) {
+void
+let::packets::write<let::packets::state::play>::player_abilities(let::network::byte_buffer &buffer, std::byte flags,
+                                                                 float flying_speed, float walking_speed) {
     write_header(buffer, 10, 0x13);
     let::network::encoder::write(buffer, flags);
     let::network::encoder::write(buffer, flying_speed);
     let::network::encoder::write(buffer, walking_speed);
 }
 
-void let::packets::write<let::packets::state::play>::tab_complete(let::network::byte_buffer &buffer, const std::string &text, bool has_pos, std::optional<glm::ivec3> looking_at_block) {
+void
+let::packets::write<let::packets::state::play>::tab_complete(let::network::byte_buffer &buffer, const std::string &text,
+                                                             bool has_pos, std::optional<glm::ivec3> looking_at_block) {
 
     const auto length = 2 + let::var_int(text.size()).length() + text.size() + (looking_at_block.has_value() ? 8 : 0);
 
@@ -170,7 +195,10 @@ void let::packets::write<let::packets::state::play>::tab_complete(let::network::
         let::network::encoder::write(buffer, looking_at_block.value());
 }
 
-void let::packets::write<let::packets::state::play>::client_settings(let::network::byte_buffer &buffer, const std::string &locale, std::byte view_distance, std::byte chat_mode, bool chat_colours, std::uint8_t skin_parts) {
+void let::packets::write<let::packets::state::play>::client_settings(let::network::byte_buffer &buffer,
+                                                                     const std::string &locale, std::byte view_distance,
+                                                                     std::byte chat_mode, bool chat_colours,
+                                                                     std::uint8_t skin_parts) {
     const auto length = 5 + let::var_int(locale.size()).length() + locale.size();
 
     write_header(buffer, length, 0x15);
@@ -181,26 +209,32 @@ void let::packets::write<let::packets::state::play>::client_settings(let::networ
     let::network::encoder::write(buffer, skin_parts);
 }
 
-void let::packets::write<let::packets::state::play>::client_status(let::network::byte_buffer &buffer, let::var_int action) {
-     write_header(buffer, 1 + action.length(), 0x16);
-     let::network::encoder::write(buffer, action);
+void
+let::packets::write<let::packets::state::play>::client_status(let::network::byte_buffer &buffer, let::var_int action) {
+    write_header(buffer, 1 + action.length(), 0x16);
+    let::network::encoder::write(buffer, action);
 }
 
-void let::packets::write<let::packets::state::play>::plugin_message(let::network::byte_buffer &buffer, const std::string &channel, const std::vector<std::byte> &data) {
+void let::packets::write<let::packets::state::play>::plugin_message(let::network::byte_buffer &buffer,
+                                                                    const std::string &channel,
+                                                                    const std::vector<std::byte> &data) {
     write_header(buffer, 1 + let::var_int(channel.size()).length() + channel.size() + data.size(), 0x17);
     let::network::encoder::write(buffer, channel);
     buffer.write_bytes(data.data(), data.size());
 }
 
-void let::packets::write<let::packets::state::play>::spectate(let::network::byte_buffer &buffer, let::uuid target_player) {
-     write_header(buffer, 17, 0x18);
-     let::network::encoder::write(buffer, target_player);
+void
+let::packets::write<let::packets::state::play>::spectate(let::network::byte_buffer &buffer, let::uuid target_player) {
+    write_header(buffer, 17, 0x18);
+    let::network::encoder::write(buffer, target_player);
 }
 
-void let::packets::write<let::packets::state::play>::resource_pack_status(let::network::byte_buffer &buffer, const std::string &hash, let::var_int result) {
-     write_header(buffer, 1 + result.length() + let::var_int(hash.size()).length() + hash.size(), 0x18);
-     let::network::encoder::write(buffer, hash);
-     let::network::encoder::write(buffer, result);
+void let::packets::write<let::packets::state::play>::resource_pack_status(let::network::byte_buffer &buffer,
+                                                                          const std::string &hash,
+                                                                          let::var_int result) {
+    write_header(buffer, 1 + result.length() + let::var_int(hash.size()).length() + hash.size(), 0x18);
+    let::network::encoder::write(buffer, hash);
+    let::network::encoder::write(buffer, result);
 }
 
 let::packets::read<let::packets::state::play>::keep_alive_packet
@@ -385,8 +419,7 @@ let::packets::read<let::packets::state::play>::spawn_object(let::network::byte_b
     let::network::decoder::read(buffer, packet.yaw);
     let::network::decoder::read(buffer, packet.data);
 
-    if (packet.data != 0)
-    {
+    if (packet.data != 0) {
         // Giving the optionals a value
         packet.velocity_x = 0;
         packet.velocity_y = 0;
@@ -634,15 +667,13 @@ let::packets::read<let::packets::state::play>::entity_properties(let::network::b
     let::network::decoder::read(buffer, packet.entity_id);
     let::network::decoder::read(buffer, packet.property_count);
 
-    for (auto i = 0; i < packet.property_count.val; i++)
-    {
+    for (auto i = 0; i < packet.property_count.val; i++) {
         auto property = entity_properties_packet::property();
         let::network::decoder::read(buffer, property.key);
         let::network::decoder::read(buffer, property.value);
         let::network::decoder::read(buffer, property.modifier_count);
 
-        for (auto j = 0; j < property.modifier_count.val; j++)
-        {
+        for (auto j = 0; j < property.modifier_count.val; j++) {
             auto modifier = entity_properties_packet::property::modifier();
             let::network::decoder::read(buffer, modifier.uuid);
             let::network::decoder::read(buffer, modifier.amount);
@@ -672,6 +703,7 @@ let::packets::read<let::packets::state::play>::chunk_data(let::network::byte_buf
     let::network::decoder::read(buffer, primary_bitmask);
     let::network::decoder::read(buffer, chunk_data_size);
 
+    // Todo:
 
 
     return packet;
@@ -682,6 +714,32 @@ let::packets::read<let::packets::state::play>::multi_block_change(let::network::
     auto packet = multi_block_change_packet();
     packet.header = read_header(buffer);
 
+    auto x = int();
+    auto z = int();
+    auto block_count = let::var_int();
+    let::network::decoder::read(buffer, x);
+    let::network::decoder::read(buffer, z);
+    let::network::decoder::read(buffer, block_count);
+
+    packet.changed_blocks.reserve(block_count.val);
+    for (auto i = 0; i < block_count.val; i++) {
+        auto horizontal = std::uint8_t();
+        auto y_coordinate = std::uint8_t();
+        auto block_id = let::var_int();
+
+        let::network::decoder::read(buffer, horizontal);
+        let::network::decoder::read(buffer, y_coordinate);
+        let::network::decoder::read(buffer, block_id);
+
+        auto target = multi_block_change_packet::block_target();
+        target.position.x = (horizontal & 0xF0) + x * 16;
+        target.position.z = (horizontal & 0x0F) + z * 16;
+        target.position.y = y_coordinate;
+
+        target.block = block_id.val;
+        packet.changed_blocks.push_back(target);
+    }
+
     return packet;
 }
 
@@ -689,6 +747,12 @@ let::packets::read<let::packets::state::play>::block_change_packet
 let::packets::read<let::packets::state::play>::block_change(let::network::byte_buffer &buffer) {
     auto packet = block_change_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.position);
+
+    auto block = let::var_int();
+    let::network::decoder::read(buffer, block);
+    packet.block = block.val;
 
     return packet;
 }
@@ -698,6 +762,14 @@ let::packets::read<let::packets::state::play>::block_action(let::network::byte_b
     auto packet = block_action_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.coordinate);
+    let::network::decoder::read(buffer, packet.bytes[0]);
+    let::network::decoder::read(buffer, packet.bytes[1]);
+
+    auto block_type = let::var_int();
+    let::network::decoder::read(buffer, block_type);
+    packet.block_type = block_type.val;
+
     return packet;
 }
 
@@ -705,6 +777,10 @@ let::packets::read<let::packets::state::play>::block_break_animation_packet
 let::packets::read<let::packets::state::play>::block_break_animation(let::network::byte_buffer &buffer) {
     auto packet = block_break_animation_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.entity_id);
+    let::network::decoder::read(buffer, packet.position);
+    let::network::decoder::read(buffer, packet.stage);
 
     return packet;
 }
@@ -722,6 +798,32 @@ let::packets::read<let::packets::state::play>::explosion(let::network::byte_buff
     auto packet = explosion_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.position.x);
+    let::network::decoder::read(buffer, packet.position.y);
+    let::network::decoder::read(buffer, packet.position.z);
+    let::network::decoder::read(buffer, packet.radius);
+
+    auto count = std::int32_t();
+    let::network::decoder::read(buffer, count);
+
+    packet.blocks.reserve(count);
+    for (int i = 0; i < count; i++) {
+        auto offsets = std::array<std::byte, 3>();
+
+        let::network::decoder::read(buffer, offsets[0]);
+        let::network::decoder::read(buffer, offsets[1]);
+        let::network::decoder::read(buffer, offsets[2]);
+
+        packet.blocks.emplace_back(
+                packet.position[0] + static_cast<std::int8_t>(offsets[0]),
+                packet.position[1] + static_cast<std::int8_t>(offsets[1]),
+                packet.position[2] + static_cast<std::int8_t>(offsets[2]));
+    }
+
+    let::network::decoder::read(buffer, packet.motion.x);
+    let::network::decoder::read(buffer, packet.motion.y);
+    let::network::decoder::read(buffer, packet.motion.z);
+
     return packet;
 }
 
@@ -729,6 +831,11 @@ let::packets::read<let::packets::state::play>::effect_packet
 let::packets::read<let::packets::state::play>::effect(let::network::byte_buffer &buffer) {
     auto packet = effect_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.position);
+    let::network::decoder::read(buffer, packet.data);
+    let::network::decoder::read(buffer, packet.disable_relative_volume);
 
     return packet;
 }
@@ -738,6 +845,11 @@ let::packets::read<let::packets::state::play>::sound_effect(let::network::byte_b
     auto packet = sound_effect_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.name);
+    let::network::decoder::read(buffer, packet.position);
+    let::network::decoder::read(buffer, packet.volume);
+    let::network::decoder::read(buffer, packet.pitch);
+
     return packet;
 }
 
@@ -745,6 +857,29 @@ let::packets::read<let::packets::state::play>::particle_packet
 let::packets::read<let::packets::state::play>::particle(let::network::byte_buffer &buffer) {
     auto packet = particle_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.long_distance);
+    let::network::decoder::read(buffer, packet.position.x);
+    let::network::decoder::read(buffer, packet.position.y);
+    let::network::decoder::read(buffer, packet.position.z);
+    let::network::decoder::read(buffer, packet.offset.x);
+    let::network::decoder::read(buffer, packet.offset.y);
+    let::network::decoder::read(buffer, packet.offset.z);
+    let::network::decoder::read(buffer, packet.particle_data);
+    let::network::decoder::read(buffer, packet.count);
+
+    auto data_count = 0;
+    if (packet.id == 36)
+        data_count = 2;
+    else if (packet.id == 37 || packet.id == 38)
+        data_count = 1;
+
+    for (int i = 0; i < 2; i++) {
+        auto val = 0;
+        let::network::decoder::read(buffer, val);
+        packet.data[i] = val;
+    }
 
     return packet;
 }
@@ -754,6 +889,9 @@ let::packets::read<let::packets::state::play>::change_game_state(let::network::b
     auto packet = change_game_state_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.reason);
+    let::network::decoder::read(buffer, packet.value);
+
     return packet;
 }
 
@@ -761,6 +899,10 @@ let::packets::read<let::packets::state::play>::spawn_global_entity_packet
 let::packets::read<let::packets::state::play>::spawn_global_entity(let::network::byte_buffer &buffer) {
     auto packet = spawn_global_entity_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.type);
+    let::network::decoder::read(buffer, packet.position);
 
     return packet;
 }
@@ -770,6 +912,17 @@ let::packets::read<let::packets::state::play>::open_window(let::network::byte_bu
     auto packet = open_window_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.type);
+    let::network::decoder::read(buffer, packet.title);
+    let::network::decoder::read(buffer, packet.slot_count);
+
+    if (packet.type == "EntityHorse") {
+        int entity_id;
+        let::network::decoder::read(buffer, entity_id);
+        packet.entity_id = entity_id;
+    }
+
     return packet;
 }
 
@@ -777,6 +930,8 @@ let::packets::read<let::packets::state::play>::close_window_packet
 let::packets::read<let::packets::state::play>::close_window(let::network::byte_buffer &buffer) {
     auto packet = close_window_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.id);
 
     return packet;
 }
@@ -786,6 +941,10 @@ let::packets::read<let::packets::state::play>::set_slot(let::network::byte_buffe
     auto packet = set_slot_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.slot);
+    let::network::decoder::read(buffer, packet.data);
+
     return packet;
 }
 
@@ -793,6 +952,16 @@ let::packets::read<let::packets::state::play>::window_items_packet
 let::packets::read<let::packets::state::play>::window_items(let::network::byte_buffer &buffer) {
     auto packet = window_items_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.id);
+
+    auto count = std::int16_t();
+    packet.slots.reserve(count);
+    for (int i = 0; i < count; i++) {
+        auto slot = let::slot();
+        let::network::decoder::read(buffer, slot);
+        packet.slots.push_back(std::move(slot));
+    }
 
     return packet;
 }
@@ -802,6 +971,10 @@ let::packets::read<let::packets::state::play>::window_property(let::network::byt
     auto packet = window_property_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.property);
+    let::network::decoder::read(buffer, packet.value);
+
     return packet;
 }
 
@@ -809,6 +982,10 @@ let::packets::read<let::packets::state::play>::confirm_transaction_packet
 let::packets::read<let::packets::state::play>::confirm_transaction(let::network::byte_buffer &buffer) {
     auto packet = confirm_transaction_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.id);
+    let::network::decoder::read(buffer, packet.action_number);
+    let::network::decoder::read(buffer, packet.accepted);
 
     return packet;
 }
@@ -818,6 +995,10 @@ let::packets::read<let::packets::state::play>::update_sign(let::network::byte_bu
     auto packet = update_sign_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.location);
+    for (auto i = 0; i < 4; i++)
+        let::network::decoder::read(buffer, packet.lines[i]);
+
     return packet;
 }
 
@@ -825,6 +1006,47 @@ let::packets::read<let::packets::state::play>::map_packet
 let::packets::read<let::packets::state::play>::map(let::network::byte_buffer &buffer) {
     auto packet = map_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.item_damage);
+    let::network::decoder::read(buffer, packet.scale);
+
+    auto icon_count = let::var_int();
+    packet.icons.reserve(icon_count.val);
+    for (int i = 0; i < icon_count.val; i++) {
+        auto icon = map_packet::icon();
+        let::network::decoder::read(buffer, icon.direction_and_type);
+        let::network::decoder::read(buffer, icon.x);
+        let::network::decoder::read(buffer, icon.z);
+        packet.icons.push_back(icon);
+    }
+
+    let::network::decoder::read(buffer, packet.columns);
+
+    if (static_cast<std::int8_t>(packet.columns) > 0) {
+        auto rows = std::byte();
+        auto x = std::byte();
+        auto z = std::byte();
+        auto length = int();
+        auto data = std::vector<std::uint8_t>();
+
+        let::network::decoder::read(buffer, rows);
+        let::network::decoder::read(buffer, x);
+        let::network::decoder::read(buffer, z);
+        let::network::decoder::read(buffer, length);
+
+        data.reserve(length);
+        for (int i = 0; i < length; i++) {
+            auto byte = std::uint8_t();
+            let::network::decoder::read(buffer, byte);
+            data.push_back(byte);
+        }
+
+        packet.rows = rows;
+        packet.x = x;
+        packet.z = z;
+        packet.length = length;
+        packet.data = std::move(data);
+    }
 
     return packet;
 }
@@ -834,6 +1056,9 @@ let::packets::read<let::packets::state::play>::update_block_entity(let::network:
     auto packet = update_block_entity_packet();
     packet.header = read_header(buffer);
 
+    LET_EXCEPTION(exception::source_type::network, "Attempted to parse unimplemented packet");
+    // Todo: Figure out how to parse the optional NBT tag
+
     return packet;
 }
 
@@ -841,6 +1066,8 @@ let::packets::read<let::packets::state::play>::open_sign_editor_packet
 let::packets::read<let::packets::state::play>::open_sign_editor(let::network::byte_buffer &buffer) {
     auto packet = open_sign_editor_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.position);
 
     return packet;
 }
@@ -850,6 +1077,18 @@ let::packets::read<let::packets::state::play>::statistics(let::network::byte_buf
     auto packet = statistics_packet();
     packet.header = read_header(buffer);
 
+    auto count = let::var_int();
+    let::network::decoder::read(buffer, count);
+    packet.statistics.reserve(count.val);
+    for (int i = 0; i < count.val; i++) {
+        auto stat = statistics_packet::statistic();
+        auto val = let::var_int();
+        let::network::decoder::read(buffer, stat.name);
+        let::network::decoder::read(buffer, val);
+        stat.value = val.val;
+        packet.statistics.push_back(stat);
+    }
+
     return packet;
 }
 
@@ -857,6 +1096,69 @@ let::packets::read<let::packets::state::play>::player_list_item_packet
 let::packets::read<let::packets::state::play>::player_list_item(let::network::byte_buffer &buffer) {
     auto packet = player_list_item_packet();
     packet.header = read_header(buffer);
+
+    auto action = let::var_int();
+    let::network::decoder::read(buffer, action);
+    packet.action = action.val;
+
+    auto number_players = let::var_int();
+    let::network::decoder::read(buffer, number_players);
+
+    packet.players.reserve(number_players.val);
+    for (int i = 0; i < number_players.val; i++) {
+        auto player = player_list_item_packet::player_data();
+
+        let::network::decoder::read(buffer, player.name);
+
+        auto number_props = let::var_int();
+        let::network::decoder::read(buffer, number_props);
+
+        player.properties.reserve(number_props.val);
+        for (int j = 0; j < number_props.val; j++) {
+            auto property = player_list_item_packet::player_data::property();
+
+            let::network::decoder::read(buffer, property.name);
+            let::network::decoder::read(buffer, property.value);
+            let::network::decoder::read(buffer, property.is_signed);
+
+            if (property.is_signed) {
+                auto signature = std::string();
+                let::network::decoder::read(buffer, signature);
+                property.signature = std::move(signature);
+            }
+
+            player.properties.push_back(std::move(property));
+        }
+
+        auto gamemode = let::var_int();
+        auto ping = let::var_int();
+        let::network::decoder::read(buffer, gamemode);
+        let::network::decoder::read(buffer, ping);
+        player.gamemode = gamemode.val;
+        player.ping = ping.val;
+
+        auto has_display_name = bool();
+        let::network::decoder::read(buffer, has_display_name);
+        if (has_display_name) {
+            auto display_name = let::chat();
+            let::network::decoder::read(buffer, display_name);
+            player.display_name = std::move(display_name);
+        }
+
+        auto updated_gamemode = let::var_int();
+        auto updated_ping = let::var_int();
+        let::network::decoder::read(buffer, updated_gamemode);
+        let::network::decoder::read(buffer, updated_ping);
+        player.update_gamemode = updated_gamemode.val;
+        player.update_latency = updated_ping.val;
+
+        let::network::decoder::read(buffer, has_display_name);
+        if (has_display_name) {
+            auto name = let::chat();
+            let::network::decoder::read(buffer, name);
+            player.update_display_name = std::move(name);
+        }
+    }
 
     return packet;
 }
@@ -874,9 +1176,19 @@ let::packets::read<let::packets::state::play>::player_abilities(let::network::by
 }
 
 let::packets::read<let::packets::state::play>::tab_complete_packet
-        let::packets::read<let::packets::state::play>::tab_complete(let::network::byte_buffer &buffer) {
+let::packets::read<let::packets::state::play>::tab_complete(let::network::byte_buffer &buffer) {
     auto packet = tab_complete_packet();
     packet.header = read_header(buffer);
+
+    auto count = let::var_int();
+    let::network::decoder::read(buffer, count);
+    packet.matches.reserve(count.val);
+
+    for (int i = 0; i < count.val; i++) {
+        auto str = std::string();
+        let::network::decoder::read(buffer, str);
+        packet.matches.push_back(std::move(str));
+    }
 
     return packet;
 }
@@ -886,6 +1198,21 @@ let::packets::read<let::packets::state::play>::scoreboard_objective(let::network
     auto packet = scoreboard_objective_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.name);
+    let::network::decoder::read(buffer, packet.mode);
+
+    const auto extra_data = packet.mode == std::byte(0) || packet.mode == std::byte(2);
+
+    if (extra_data) {
+        auto value = std::string();
+        let::network::decoder::read(buffer, value);
+        packet.value = std::move(value);
+
+        auto type = std::string();
+        let::network::decoder::read(buffer, type);
+        packet.type = std::move(type);
+    }
+
     return packet;
 }
 
@@ -893,6 +1220,16 @@ let::packets::read<let::packets::state::play>::update_score_packet
 let::packets::read<let::packets::state::play>::update_score(let::network::byte_buffer &buffer) {
     auto packet = update_score_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.score_name);
+    let::network::decoder::read(buffer, packet.action);
+    let::network::decoder::read(buffer, packet.objective_name);
+
+    if (packet.action != std::byte(1)) {
+        auto value = let::var_int();
+        let::network::decoder::read(buffer, value);
+        packet.value = value.val;
+    }
 
     return packet;
 }
@@ -902,6 +1239,9 @@ let::packets::read<let::packets::state::play>::display_scoreboard(let::network::
     auto packet = display_scoreboard_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.position);
+    let::network::decoder::read(buffer, packet.score_name);
+
     return packet;
 }
 
@@ -910,6 +1250,45 @@ let::packets::read<let::packets::state::play>::teams(let::network::byte_buffer &
     auto packet = teams_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.team_name);
+    let::network::decoder::read(buffer, packet.mode);
+
+    const auto extra_data = packet.mode == std::byte(0) || packet.mode == std::byte(2);
+
+    if (extra_data) {
+        std::string team_display_name;
+        std::string team_prefix;
+        std::string team_suffix;
+        std::byte friendly_fire;
+        std::string name_tag_visibility;
+        std::byte colour;
+        std::vector<std::string> players;
+
+        let::network::decoder::read(buffer, team_display_name);
+        let::network::decoder::read(buffer, team_prefix);
+        let::network::decoder::read(buffer, team_suffix);
+        let::network::decoder::read(buffer, friendly_fire);
+        let::network::decoder::read(buffer, name_tag_visibility);
+        let::network::decoder::read(buffer, colour);
+
+        auto player_count = let::var_int();
+        let::network::decoder::read(buffer, player_count);
+        players.reserve(player_count.val);
+
+        for (int i = 0; i < player_count.val; i++) {
+            auto player_name = std::string();
+            let::network::decoder::read(buffer, player_name);
+            players.push_back(std::move(player_name));
+        }
+
+        packet.team_display_name = team_display_name;
+        packet.team_prefix = team_prefix;
+        packet.team_suffix = team_suffix;
+        packet.friendly_fire = friendly_fire;
+        packet.name_tag_visibility = name_tag_visibility;
+        packet.colour = colour;
+        packet.players = std::move(players);
+    }
     return packet;
 }
 
@@ -936,6 +1315,8 @@ let::packets::read<let::packets::state::play>::disconnect(let::network::byte_buf
     auto packet = disconnect_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.reason);
+
     return packet;
 }
 
@@ -954,6 +1335,32 @@ let::packets::read<let::packets::state::play>::combat_event(let::network::byte_b
     auto packet = combat_event_packet();
     packet.header = read_header(buffer);
 
+    auto event = let::var_int();
+    let::network::decoder::read(buffer, event);
+    packet.event = event.val;
+
+    if (packet.event == 0) {
+        auto duration = let::var_int();
+        let::network::decoder::read(buffer, duration);
+        packet.duration = duration.val;
+    }
+
+    if (packet.event == 2) {
+        auto player_id = let::var_int();
+        let::network::decoder::read(buffer, player_id);
+        packet.player_id = player_id.val;
+    }
+
+    if (packet.event == 0 || packet.event == 2) {
+        auto entity_id = let::var_int();
+        let::network::decoder::read(buffer, entity_id);
+        packet.entity_id = entity_id.val;
+    }
+
+    // Todo: this might be broken
+    // https://wiki.vg/index.php?title=Protocol&oldid=7368#Combat_Event
+    let::network::decoder::read(buffer, packet.message);
+
     return packet;
 }
 
@@ -961,6 +1368,8 @@ let::packets::read<let::packets::state::play>::camera_packet
 let::packets::read<let::packets::state::play>::camera(let::network::byte_buffer &buffer) {
     auto packet = camera_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.camera_id);
 
     return packet;
 }
@@ -970,6 +1379,65 @@ let::packets::read<let::packets::state::play>::world_border(let::network::byte_b
     auto packet = world_border_packet();
     packet.header = read_header(buffer);
 
+    auto action = let::var_int();
+    let::network::decoder::read(buffer, action);
+    packet.action = action.val;
+
+    switch (packet.action) {
+        case 0: {
+            let::network::decoder::read(buffer, packet.set_size.radius);
+            break;
+        }
+        case 1: {
+            let::network::decoder::read(buffer, packet.lerp_size.old_radius);
+            let::network::decoder::read(buffer, packet.lerp_size.new_radius);
+            auto speed = let::var_long();
+            let::network::decoder::read(buffer, speed);
+            packet.lerp_size.speed = speed.val;
+            break;
+        }
+        case 2: {
+            let::network::decoder::read(buffer, packet.set_center.x);
+            let::network::decoder::read(buffer, packet.set_center.z);
+            break;
+        }
+        case 3: {
+            let::network::decoder::read(buffer, packet.initialize.x);
+            let::network::decoder::read(buffer, packet.initialize.z);
+            let::network::decoder::read(buffer, packet.initialize.old_radius);
+            let::network::decoder::read(buffer, packet.initialize.new_radius);
+
+            auto speed = let::var_long();
+            auto boundary = let::var_int();
+            auto time = let::var_int();
+            auto blocks = let::var_int();
+
+            let::network::decoder::read(buffer, speed);
+            let::network::decoder::read(buffer, boundary);
+            let::network::decoder::read(buffer, time);
+            let::network::decoder::read(buffer, blocks);
+
+            packet.initialize.speed = speed.val;
+            packet.initialize.portal_teleport_boundary = boundary.val;
+            packet.initialize.warning_time = time.val;
+            packet.initialize.warning_blocks = blocks.val;
+            break;
+        }
+        case 4: {
+            auto time = let::var_int();
+            let::network::decoder::read(buffer, time);
+            packet.set_warning_time.warning_time = time.val;
+            break;
+        }
+        case 5: {
+            auto blocks = let::var_int();
+            let::network::decoder::read(buffer, blocks);
+            packet.set_warning_blocks.warning_blocks = blocks.val;
+            break;
+        }
+    }
+
+
     return packet;
 }
 
@@ -977,6 +1445,20 @@ let::packets::read<let::packets::state::play>::title_packet
 let::packets::read<let::packets::state::play>::title(let::network::byte_buffer &buffer) {
     auto packet = title_packet();
     packet.header = read_header(buffer);
+
+    auto action = let::var_int();
+    let::network::decoder::read(buffer, action);
+    packet.action = action.val;
+
+    if (packet.action == 0) {
+        let::network::decoder::read(buffer, packet.title);
+    } else if (packet.action == 1) {
+        let::network::decoder::read(buffer, packet.subtitle);
+    } else if (packet.action == 2) {
+        let::network::decoder::read(buffer, packet.fade_in);
+        let::network::decoder::read(buffer, packet.stay);
+        let::network::decoder::read(buffer, packet.fade_out);
+    }
 
     return packet;
 }
@@ -986,6 +1468,10 @@ let::packets::read<let::packets::state::play>::set_compression(let::network::byt
     auto packet = set_compression_packet();
     packet.header = read_header(buffer);
 
+    auto threshold = let::var_int();
+    let::network::decoder::read(buffer, threshold);
+    packet.threshold = threshold.val;
+
     return packet;
 }
 
@@ -994,6 +1480,9 @@ let::packets::read<let::packets::state::play>::player_list_header_and_footer(let
     auto packet = player_list_header_and_footer_packet();
     packet.header = read_header(buffer);
 
+    let::network::decoder::read(buffer, packet.list_header);
+    let::network::decoder::read(buffer, packet.list_footer);
+
     return packet;
 }
 
@@ -1001,6 +1490,21 @@ let::packets::read<let::packets::state::play>::resource_pack_send_packet
 let::packets::read<let::packets::state::play>::resource_pack_send(let::network::byte_buffer &buffer) {
     auto packet = resource_pack_send_packet();
     packet.header = read_header(buffer);
+
+    let::network::decoder::read(buffer, packet.url);
+    let::network::decoder::read(buffer, packet.hash);
+
+    return packet;
+}
+
+let::packets::read<let::packets::state::play>::update_entity_nbt_packet
+let::packets::read<let::packets::state::play>::update_entity_nbt(let::network::byte_buffer &buffer) {
+    auto packet = update_entity_nbt_packet();
+    packet.header = read_header(buffer);
+
+    LET_EXCEPTION(exception::source_type::network, "Attempted to parse unimplemented packet");
+//    let::network::decoder::read(buffer, packet.entity_id);
+//    let::network::decoder::read(buffer, packet.tag);
 
     return packet;
 }
