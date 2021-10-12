@@ -22,6 +22,10 @@ namespace let::network {
 
         void receive(let::network::byte_buffer &data, size_t byte_size);
 
+        [[nodiscard]] int ask(let::network::byte_buffer &data, size_t data_size);
+
+        [[nodiscard]] std::byte read_byte();
+
         void disconnect();
 
         [[nodiscard]] bool connected() const noexcept;

@@ -3,8 +3,8 @@
 let::window_init::window_init() {
 }
 
-let::window::window(std::uint16_t width, std::uint16_t height, const std::string &title) :
-        _width(width), _height(height) {
+let::window::window(std::uint16_t width, std::uint16_t height, const std::string &title, let::opengl::manager *manager) :
+        _width(width), _height(height), _opengl_manager(manager) {
     ZoneScopedN("window::constructor");
 
     // Todo: Figure out how to move this out and make it static, problem is gladLoad must be after make context current...
@@ -23,17 +23,9 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
     glfwSetMouseButtonCallback(_window, _glfw_mouse_button_callback);
     glfwSetKeyCallback(_window, _glfw_key_callback);
 
-    try {
-        _fullscreen_vert = let::opengl::create_shader(
-                std::string(LETRIS_ASSET_PATH) + "shaders/fullscreen_texture/shader.vert");
-        _fullscreen_frag = let::opengl::create_shader(
-                std::string(LETRIS_ASSET_PATH) + "shaders/fullscreen_texture/shader.frag");
-        _fullscreen_program = let::opengl::create_program(_fullscreen_vert, _fullscreen_frag);
-    } catch (opengl::shader_compile_exception &ex) {
-//        fmt::print("Exception creating shader: {}, with error: \n{}\n", ex.path(), ex.error());
-    } catch (opengl::program_link_exception &ex) {
-//        fmt::print("Exception linking program: {}, with error: \n{}\n", ex.pid(), ex.error());
-    }
+    _fullscreen_program = _opengl_manager->create_program({
+        "shaders/fullscreen_texture/shader.vert",
+        "shaders/fullscreen_texture/shader.frag"});
 }
 
 bool let::window::should_close() const noexcept {
@@ -64,14 +56,14 @@ void let::window::set_texture_callback(std::function<std::optional<std::uint32_t
 void let::window::display_frame() {
     ZoneScopedN("window::display_frame");
     glfwMakeContextCurrent(_window);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//    glClear(GL_COLOR_BUFFER_BIT);
 
     auto texture_handle = _texture_callback();
 
-    glUseProgram(_fullscreen_program);
-
-    glUniform1i(1, texture_handle.has_value());
+    _opengl_manager->bind(_fullscreen_program);
+//    _opengl_manager->uniform("use", glm::ivec3(0.2, 0.3, 0.7));
 
     if (texture_handle.has_value()) {
         glActiveTexture(GL_TEXTURE0);

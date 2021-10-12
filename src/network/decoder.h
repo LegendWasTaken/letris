@@ -85,7 +85,7 @@ namespace let::network::decoder {
             result |= (val << (7 * numRead));
 
             numRead++;
-            if (numRead > 5) throw std::runtime_error("VarLong too big");
+            if (numRead > 5) throw std::runtime_error("VarInt too big");
         } while ((read & 0b10000000) != 0);
 
         value.val = result;

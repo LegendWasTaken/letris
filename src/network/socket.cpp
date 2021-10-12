@@ -50,6 +50,46 @@ void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_
     }
 }
 
+int let::network::socket::ask(let::network::byte_buffer &data, size_t data_size) {
+    ZoneScopedN("socket::ask");
+    // Todo: Use std::array & make it a while loop
+    auto buffer = std::vector<std::byte>(data_size);
+
+    const auto read = ::recv(_socket.handle(), reinterpret_cast<char*>(buffer.data()), data_size, MSG_PEEK);
+
+    if (read > 0) {
+        data.write_bytes(buffer.data(), read);
+        return read;
+    } else if (read == 0) {
+        return 0;
+    } else if (read < 0)
+    {
+        const auto err_code = WSAGetLastError();
+        if (err_code == WSAEWOULDBLOCK)
+            return 0;
+        // Todo: need exception here
+    }
+
+    return 0;
+}
+
+std::byte let::network::socket::read_byte() {
+    char result;
+
+    while (true) {
+        const auto read = ::recv(_socket.handle(), &result, 1, 0);
+
+        if (read < 0)
+            if (WSAGetLastError() == WSAEWOULDBLOCK)
+                continue;;
+
+        if (read != 1)
+            continue;
+
+        return std::byte(result);
+    }
+}
+
 void let::network::socket::disconnect() {
     ZoneScopedN("socket::disconnect");
     _socket.close();

@@ -1,7 +1,3 @@
-//
-// Created by howto on 2/9/2021.
-//
-
 #include "game_network.h"
 
 let::network::game::game() : _compression_threshold(-1) {
@@ -52,57 +48,20 @@ void let::network::game::disconnect() {
 
 void let::network::game::_process() {
     auto incoming = let::network::byte_buffer();
-    auto processed_incoming = let::network::byte_buffer();
-//    while (_processing) {
-    _server_socket.receive(incoming, 0);
-    while (incoming.size() > 0) {
 
-        if (_compression_threshold != -1) {
-            auto packet_length = let::var_int();
-            auto data_length = let::var_int();
-            let::network::decoder::read(incoming, packet_length);
-            let::network::decoder::read(incoming, data_length);
-
-            if (data_length.val == 0) {
-                // If data_length in the packet data is set to 0, the packet is not compressed.
-                // We can assume the server will always abide by this, even if it doesn't. It wont matter, we handle it properly
-                const auto decompressed_length = packet_length.val - 1; // minus 1 from the 0 of data length
-
-                const auto packet_data = incoming.next_bytes(decompressed_length);
-
-                let::network::encoder::write(processed_incoming, let::var_int(decompressed_length));
-                processed_incoming.write_bytes(packet_data.data(), packet_data.size());
-            } else {
-                decompress_packet(incoming, data_length.val, packet_length.val, processed_incoming);
-            }
-        } else {
-            // The packet structure is as follows
-            // var int,
-            // var int,
-            // data
-
-            auto size = let::var_int();
-            let::network::decoder::read(incoming, size);
-
-            const auto data = incoming.next_bytes(size.val);
-            let::network::encoder::write(processed_incoming, size);
-            processed_incoming.write_bytes(data.data(), data.size());
-        }
-
+    while (_read_packet(incoming)) {
         switch (_status) {
             case connection_status::connecting:
-                _handle_connecting_packet(processed_incoming);
+                _handle_connecting_packet(incoming);
                 break;
             case connection_status::connected:
-                _handle_connected_packet(processed_incoming);
+                _handle_connected_packet(incoming);
                 break;
             case connection_status::disconnected:
                 // Shouldn't ever reach here...
                 break;
         }
     }
-
-//    }
 }
 
 void let::network::game::_handle_connecting_packet(let::network::byte_buffer &buffer) {
@@ -132,6 +91,7 @@ void let::network::game::_handle_connecting_packet(let::network::byte_buffer &bu
         }
             break;
     }
+    buffer.clear();
 }
 
 void let::network::game::_handle_connected_packet(let::network::byte_buffer &buffer) {
@@ -509,7 +469,7 @@ void let::network::game::_handle_connected_packet(let::network::byte_buffer &buf
     }
 }
 
-void let::network::game::decompress_packet(let::network::byte_buffer &source, size_t decompressed_size,
+void let::network::game::_decompress_packet(let::network::byte_buffer &source, size_t decompressed_size,
                                            size_t compressed_size, let::network::byte_buffer &target) {
 
     auto decompressed_data = std::vector<std::byte>(decompressed_size);
@@ -519,11 +479,68 @@ void let::network::game::decompress_packet(let::network::byte_buffer &source, si
     const auto result = zng_uncompress(reinterpret_cast<uint8_t *>(decompressed_data.data()), &decompressed_size,
                    reinterpret_cast<uint8_t *>(source.data()), compressed_size);
 
-//    if (result != Z_OK)
-//        fmt::print("Decompression Failed: {}", zng_zError(result));
+    if (result != Z_OK)
+        LET_EXCEPTION(exception::source_type::network, "Failed to decompressed buffer");
+}
+
+void let::network::game::_compress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target) {
 
 }
 
-void let::network::game::compress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target) {
+bool let::network::game::_read_packet(let::network::byte_buffer &data) {
+    static auto incoming = let::network::byte_buffer();
+    static auto intermediate_buffer = let::network::byte_buffer();
+    incoming.clear();
+    intermediate_buffer.clear();
 
+    // Very expensive way of asking if there's any bytes in the stream
+    const auto read = _server_socket.ask(incoming, 1);
+    incoming.clear();
+    if (read == 0)
+        return false;
+
+    if (_compression_threshold != -1) {
+        auto packet_length = _read_var_int();
+        auto data_length = _read_var_int();
+
+        const auto packet_data_size = packet_length.val - data_length.length();
+
+        if (packet_data_size > 0)
+            _server_socket.receive(incoming, packet_data_size);
+
+        if (data_length.val != 0) {
+            _decompress_packet(incoming, data_length.val, packet_length.val - data_length.length(), intermediate_buffer);
+        } else {
+            let::network::encoder::write(data, let::var_int(packet_data_size));
+            auto packet_data = incoming.next_bytes(packet_data_size);
+            data.write_bytes(packet_data.data(), packet_data.size());
+        }
+    } else {
+        auto data_length = _read_var_int();
+
+        _server_socket.receive(incoming, data_length.val);
+
+        let::network::encoder::write(data, data_length);
+        auto packet_data = incoming.next_bytes(data_length.val);
+        data.write_bytes(packet_data.data(), packet_data.size());
+    }
+
+    return true;
+}
+
+let::var_int let::network::game::_read_var_int() {
+    int numRead = 0;
+    int32_t result  = 0;
+    uint8_t read;
+    do {
+        read       = static_cast<uint8_t>(_server_socket.read_byte());
+        long val = (read & 0b01111111);
+        result |= (val << (7 * numRead));
+
+        numRead++;
+        if (numRead > 5) throw std::runtime_error("VarInt too big");
+    } while ((read & 0b10000000) != 0);
+
+    auto res = let::var_int();
+    return res.val = result, res;
 }

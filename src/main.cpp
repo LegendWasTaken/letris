@@ -1,9 +1,5 @@
 #include <game/game.h>
 
-#include <common/exception.h>
-
-#include <spdlog/spdlog.h>
-
 int main() {
     ZoneScopedN("main");
 
@@ -15,17 +11,23 @@ int main() {
         // Hey, just don't write any bugs
         spdlog::info("Starting");
 
+        auto opengl_manager = let::opengl::manager();
+
         auto game_network = let::network::game();
-        auto window = let::window(1920, 1080, "Test");
+        auto window = let::window(1920, 1080, "Test", &opengl_manager);
         auto ultralight_renderer = ultralight::Renderer::Create();
         auto user_input_renderer = let::user_input_renderer(&ultralight_renderer, {1920, 1080});
         auto server_querier = let::network::query();
+        auto renderer = let::renderer(1920, 1080, &opengl_manager);
+        auto world = let::world();
 
         auto game = let::game_builder()
                 .with_network(game_network)
                 .with_window(window)
                 .with_ui_renderer(user_input_renderer)
                 .with_server_querier(server_querier)
+                .with_renderer(renderer)
+                .with_world(world)
                 .build();
 
         game.start();

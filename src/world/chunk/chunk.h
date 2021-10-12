@@ -4,7 +4,7 @@
 #include <array>
 #include <memory>
 
-namespace let::world {
+namespace let {
 
     class chunk_section {
     public:

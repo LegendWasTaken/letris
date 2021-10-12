@@ -37,52 +37,41 @@ add_library(Letris_lib
 
         # Network
         src/network/byte_buffer.cpp
-        src/network/byte_buffer.h
         src/network/socket.cpp
-        src/network/socket.h
-        src/network/decoder.h
-        src/network/types.h
         src/network/types.cpp
-        src/network/packets.h
         src/network/packets.cpp
-        src/network/encoder.h
         src/network/query_manager.cpp
-        src/network/query_manager.h
         src/network/game_network.cpp
-        src/network/game_network.h
         src/network/nbt.cpp
-        src/network/nbt.h
 
         # World
         src/world/chunk/chunk.cpp
-        src/world/chunk/chunk.h
+        src/world/world.cpp
 
         # Game
         src/game/game.cpp
-        src/game/game.h
 
         # Window
         src/window/window.cpp
-        src/window/window.h
 
         # Util
-        src/util/opengl.h
         src/util/luts.h
         src/util/files.h
 
         # Ui
         src/ui/user_input.cpp
-        src/ui/user_input.h
         src/ui/ultralight_filesystem.cpp
-        src/ui/ultralight_filesystem.h
 
         # Common
         src/common/logical_devices.cpp
-        src/common/logical_devices.h
+        src/common/opengl/manager.cpp
 
         # Tracy
         src/tracy/TracyClient.cpp
-        src/common/exception.cpp src/common/exception.h)
+        src/common/exception.cpp
+
+        # Renderer
+        src/renderer/renderer.cpp)
 
 if (LET_USE_TRACY)
     message("Tracy has been enabled")
@@ -96,7 +85,7 @@ target_include_directories(Letris_lib PUBLIC external src)
 target_link_libraries(Letris_lib PUBLIC glm glfw sockpp-static nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore daw::daw-header-libraries spdlog::spdlog)
 target_compile_definitions(Letris_lib PUBLIC GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")
 
-add_executable(Letris src/main.cpp)
+add_executable(Letris src/main.cpp src/common/thread/locked_resource.h)
 target_link_libraries(Letris PUBLIC Letris_lib)
 
 if (LETRIS_TESTS)

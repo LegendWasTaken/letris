@@ -3,6 +3,8 @@
 #include <network/socket.h>
 #include <network/packets.h>
 
+#include <common/exception.h>
+
 #include <zlib-ng.h>
 
 #include <vector>
@@ -45,7 +47,7 @@ namespace let::network {
         /// \brief Connect to a minecraft server, this will set the mode to [game] and dispose other connections
         /// \param address Target server address, "127.0.0.1", "localhost"
         /// \param port The port to connect to the server, default is 25565
-        void connect(const std::string &address, const std::uint16_t port = 25565);
+        void connect(const std::string &address, std::uint16_t port = 25565);
 
 
         /// \brief Disconnect from the currently connected server, only valid if the mode is [game]
@@ -56,9 +58,16 @@ namespace let::network {
         void _handle_connecting_packet(let::network::byte_buffer &buffer);
         void _handle_connected_packet(let::network::byte_buffer &buffer);
 
-        void decompress_packet(let::network::byte_buffer &source, size_t decompressed_size, size_t compressed_size, let::network::byte_buffer &target);
+        void _decompress_packet(let::network::byte_buffer &source, size_t decompressed_size, size_t compressed_size, let::network::byte_buffer &target);
 
-        void compress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target);
+        void _compress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target);
+
+        /// \brief Attempt to read a single packet into the buffer
+        /// \param data The buffer to read the decompressed and decrypted packet data into
+        /// \return If there was a packet read into the buffer or not
+        [[nodiscard]] bool _read_packet(let::network::byte_buffer &data);
+
+        [[nodiscard]] let::var_int _read_var_int();
 
         std::atomic<bool> _processing;
         std::thread _processing_thread;

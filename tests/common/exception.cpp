@@ -13,5 +13,6 @@ TEST_CASE("Source type name", "[Common.exception]") {
     let::exception(let::exception::source_type::ui, "", file, line).where().type == "ui";
     let::exception(let::exception::source_type::physics, "", file, line).where().type == "physics";
     let::exception(let::exception::source_type::nbt, "", file, line).where().type == "nbt";
+    let::exception(let::exception::source_type::opengl, "", file, line).where().type == "opengl";
 
 }

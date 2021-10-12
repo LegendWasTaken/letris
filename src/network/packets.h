@@ -472,7 +472,7 @@ namespace let::packets {
                                                                  &buffer);
 
         struct chunk_data_packet : public reader::incoming_packet {
-            std::optional<let::world::chunk> chunk;
+            std::optional<let::chunk> chunk;
         };
 
         [[nodiscard]] static  chunk_data_packet chunk_data(let::network::byte_buffer

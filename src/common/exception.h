@@ -5,19 +5,21 @@
 #include <exception>
 #include <algorithm>
 #include <array>
+#include <spdlog/fmt/fmt.h>
 
-#define LET_EXCEPTION(type, what) throw let::exception(type, what, __FILE__, __LINE__)
+#define LET_EXCEPTION(type, what, ...) throw let::exception(type, fmt::format(what, ##__VA_ARGS__), __FILE__, __LINE__)
 
 namespace let {
     class exception : std::exception {
     private:
-        std::array<std::string, 6> _source_type_lut = {
+        std::array<std::string, 7> _source_type_lut = {
             "network",
             "render",
             "window",
             "ui",
             "physics",
             "nbt",
+            "opengl",
         };
     public:
         // Hey Caio, if you add one here. Remember to update the array above (maybe it's moved), and the test for it
@@ -29,6 +31,7 @@ namespace let {
             ui,
             physics,
             nbt,
+            opengl,
         };
 
         struct source {

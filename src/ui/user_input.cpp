@@ -1,5 +1,7 @@
 #include "user_input.h"
 
+#include <utility>
+
 void let::input_screen::OnDOMReady(ultralight::View *caller, uint64_t frame_id, bool is_main_frame,
                                    const ultralight::String &url) {
     auto context = caller->LockJSContext();
@@ -204,14 +206,14 @@ void let::user_input_renderer::read_into(std::uint32_t texture) {
                  width,
                  height,
                  0,
-                 GL_RGBA,
+                 GL_BGRA,
                  GL_UNSIGNED_BYTE,
                  pixels);
 
     bitmap->UnlockPixels();
 }
 
-let::js_callback::js_callback(std::string name) : _name(name) {
+let::js_callback::js_callback(std::string name) : _name(std::move(name)) {
 
 }
 

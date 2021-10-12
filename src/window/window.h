@@ -10,7 +10,7 @@
 
 #include <common/logical_devices.h>
 
-#include <util/opengl.h>
+#include <common/opengl/manager.h>
 #include <glm/glm.hpp>
 
 #include <tracy/Tracy.hpp>
@@ -25,7 +25,7 @@ namespace let {
 namespace let {
     class window {
     public:
-        window(std::uint16_t width, std::uint16_t height, const std::string &title);
+        window(std::uint16_t width, std::uint16_t height, const std::string &title, let::opengl::manager *manager);
 
         [[nodiscard]] bool should_close() const noexcept;
 
@@ -49,9 +49,9 @@ namespace let {
         std::uint16_t _width;
         std::uint16_t _height;
 
-        std::uint32_t _fullscreen_vert;
-        std::uint32_t _fullscreen_frag;
-        std::uint32_t _fullscreen_program;
+        std::uint64_t _fullscreen_program;
+
+        let::opengl::manager *_opengl_manager;
 
         std::function<std::optional<std::uint32_t>()> _texture_callback;
 
