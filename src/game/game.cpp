@@ -34,6 +34,10 @@ void let::game::start() {
                 _game_network->status() == network::game::connection_status::connecting) {
                 _game_network->_process();
 
+                const auto incoming = _game_network->incoming();
+
+                const auto a = 5;
+
             } else {
                 auto target_server = static_cast<std::string>(_server_to_join.value());
 

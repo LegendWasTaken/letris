@@ -1,7 +1,7 @@
 #pragma once
 
 #include <network/socket.h>
-#include <network/packets.h>
+#include <common/network/packets.h>
 
 #include <atomic>
 #include <vector>

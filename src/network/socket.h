@@ -6,8 +6,8 @@
 #include <sockpp/tcp_connector.h>
 #include <sockpp/socket.h>
 
-#include <network/packets.h>
-#include <network/byte_buffer.h>
+#include <common/network/packets.h>
+#include <common/network/byte_buffer.h>
 
 #include <tracy/Tracy.hpp>
 

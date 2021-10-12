@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 
-#include <network/decoder.h>
-#include <network/encoder.h>
+#include <common/network/decoder.h>
+#include <common/network/encoder.h>
 
 TEST_CASE("Decode-Int8", "[Network.decoder]") {
     auto buffer = let::network::byte_buffer();

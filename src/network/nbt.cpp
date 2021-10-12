@@ -1,6 +1,6 @@
 #include "nbt.h"
 
-#include <network/decoder.h>
+#include <common/network/decoder.h>
 
 namespace {
     [[nodiscard]] let::nbt::tag_type read_type(let::network::byte_buffer &buffer) {

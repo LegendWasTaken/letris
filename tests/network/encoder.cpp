@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-#include <network/encoder.h>
+#include <common/network/encoder.h>
 
 TEST_CASE("Encode-Int8", "[Network.encoder]") {
     auto buffer = let::network::byte_buffer();

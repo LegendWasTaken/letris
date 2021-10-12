@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-#include <network/byte_buffer.h>
+#include <common/network/byte_buffer.h>
 
 TEST_CASE("Insertion", "[Network.byte_buffer]") {
     auto buffer = let::network::byte_buffer();

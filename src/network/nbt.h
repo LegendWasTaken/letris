@@ -5,7 +5,7 @@
 #include <optional>
 #include <variant>
 
-#include <network/byte_buffer.h>
+#include <common/network/byte_buffer.h>
 
 namespace let::nbt
 {

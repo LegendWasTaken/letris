@@ -36,10 +36,10 @@ add_library(Letris_lib
         external/glad/glad.c
 
         # Network
-        src/network/byte_buffer.cpp
+        src/common/network/byte_buffer.cpp
         src/network/socket.cpp
-        src/network/types.cpp
-        src/network/packets.cpp
+        src/common/network/types.cpp
+        src/common/network/packets.cpp
         src/network/query_manager.cpp
         src/network/game_network.cpp
         src/network/nbt.cpp

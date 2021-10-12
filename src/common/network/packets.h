@@ -4,10 +4,10 @@
 #include <numeric>
 #include <variant>
 
-#include <network/byte_buffer.h>
+#include <common/network/byte_buffer.h>
 
-#include <network/encoder.h>
-#include <network/decoder.h>
+#include <common/network/encoder.h>
+#include <common/network/decoder.h>
 
 #include <world/chunk/chunk.h>
 

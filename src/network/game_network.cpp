@@ -47,16 +47,19 @@ void let::network::game::disconnect() {
 }
 
 void let::network::game::_process() {
-    auto incoming = let::network::byte_buffer();
+    static auto incoming = let::network::byte_buffer();
 
     while (_read_packet(incoming)) {
         switch (_status) {
             case connection_status::connecting:
                 _handle_connecting_packet(incoming);
                 break;
-            case connection_status::connected:
-                _handle_connected_packet(incoming);
+            case connection_status::connected: {
+                const auto packet = incoming.next_bytes(incoming.size());
+                _incoming.write_bytes(packet.data(), packet.size());
+                incoming.clear();
                 break;
+            }
             case connection_status::disconnected:
                 // Shouldn't ever reach here...
                 break;
@@ -94,7 +97,8 @@ void let::network::game::_handle_connecting_packet(let::network::byte_buffer &bu
     buffer.clear();
 }
 
-void let::network::game::_handle_connected_packet(let::network::byte_buffer &buffer) {
+/*
+ * void let::network::game::_handle_connected_packet(let::network::byte_buffer &buffer) {
     const auto header = let::packets::reader::peek_header(buffer);
     switch (header.id.val)
     {
@@ -107,8 +111,6 @@ void let::network::game::_handle_connected_packet(let::network::byte_buffer &buf
             const auto packet = let::packets::read<packets::state::play>::join_game(buffer);
 
             // Reply with the client brand, and client settings
-
-
             break;
         }
 
@@ -468,6 +470,7 @@ void let::network::game::_handle_connected_packet(let::network::byte_buffer &buf
         }
     }
 }
+ */
 
 void let::network::game::_decompress_packet(let::network::byte_buffer &source, size_t decompressed_size,
                                            size_t compressed_size, let::network::byte_buffer &target) {

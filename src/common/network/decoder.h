@@ -1,7 +1,7 @@
 #pragma once
 
-#include <network/byte_buffer.h>
-#include <network/types.h>
+#include <common/network/byte_buffer.h>
+#include <common/network/types.h>
 
 #include <string>
 #include <stdexcept>
