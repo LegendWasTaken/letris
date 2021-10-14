@@ -35,8 +35,12 @@ void let::game::start() {
                     _game_network->status() == network::game::connection_status::connecting) {
                     _game_network->_process();
 
-                    auto incoming = _game_network->incoming();
-                    _world->process_packets(incoming);
+                    if (_game_network->status() == network::game::connection_status::connected) {
+                        static auto out_going = let::network::byte_buffer();
+                        auto incoming = _game_network->incoming();
+                        _world->process_packets(incoming, out_going);
+                        _game_network->send_data(out_going.next_bytes(out_going.size()));
+                    }
 
                 } else {
                     auto target_server = static_cast<std::string>(_server_to_join.value());

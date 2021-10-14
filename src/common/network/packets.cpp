@@ -143,7 +143,7 @@ void let::packets::write<let::packets::state::play>::close_window(let::network::
 
 void let::packets::write<let::packets::state::play>::click_window(let::network::byte_buffer &buffer) {
     // write_header(buffer, LENGTH, 0xe);
-    throw std::runtime_error("Unimplemented packet attempted");
+    LET_EXCEPTION(exception::source_type::network, "Attempted to parse unimplemented packet");
 }
 
 void let::packets::write<let::packets::state::play>::confirm_transaction(let::network::byte_buffer &buffer,
@@ -157,7 +157,7 @@ void let::packets::write<let::packets::state::play>::confirm_transaction(let::ne
 
 void let::packets::write<let::packets::state::play>::creative_inventory_action(let::network::byte_buffer &buffer) {
     // write_header(buffer, LENGTH, 0x10);
-    throw std::runtime_error("Unimplemented packet attempted");
+    LET_EXCEPTION(exception::source_type::network, "Attempted to parse unimplemented packet");
 }
 
 void
@@ -170,7 +170,7 @@ let::packets::write<let::packets::state::play>::enchant_item(let::network::byte_
 
 void let::packets::write<let::packets::state::play>::update_sign(let::network::byte_buffer &buffer) {
     // write_header(buffer, LENGTH, 0x12);
-    throw std::runtime_error("Unimplemented packet attempted");
+    LET_EXCEPTION(exception::source_type::network, "Attempted to parse unimplemented packet");
 }
 
 void

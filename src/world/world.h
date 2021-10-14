@@ -9,7 +9,7 @@ namespace let {
     public:
         world() = default;
 
-        void process_packets(let::network::byte_buffer &buffer);
+        void process_packets(let::network::byte_buffer &buffer, let::network::byte_buffer &outgoing);
 
     private:
 
