@@ -9,6 +9,7 @@ int main() {
 
     try {
         // Hey, just don't write any bugs
+        spdlog::set_level(spdlog::level::debug);
         spdlog::info("Starting");
 
         auto opengl_manager = let::opengl::manager();

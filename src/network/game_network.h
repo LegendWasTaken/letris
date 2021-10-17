@@ -73,7 +73,7 @@ namespace let::network {
 
         std::int32_t _compression_threshold;
 
-        connection_status _status;
+        connection_status _status = connection_status::disconnected;
         let::network::socket _server_socket;
 
         let::network::byte_buffer _incoming;

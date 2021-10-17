@@ -35,9 +35,12 @@ namespace let {
 
         [[nodiscard]] glm::ivec2 resolution() const noexcept;
 
-        void set_texture_callback(std::function<std::optional<std::uint32_t>()> texture_callback);
+        struct render_targets {
+            std::uint32_t gui;
+            std::uint32_t rendered;
+        };
 
-        void display_frame();
+        void display_frame(render_targets);
 
     private:
         static void _glfw_cursor_position_callback(GLFWwindow *window, double x, double y);
@@ -52,8 +55,6 @@ namespace let {
         std::uint64_t _fullscreen_program;
 
         let::opengl::manager *_opengl_manager;
-
-        std::function<std::optional<std::uint32_t>()> _texture_callback;
 
         GLFWwindow *_window;
 

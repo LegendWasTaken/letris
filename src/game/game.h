@@ -29,9 +29,9 @@ namespace let {
         let::renderer *_renderer;
         let::world *_world;
 
-        std::atomic<bool> _running;
+        bool _running;
 
-        let::locked_resource<std::string> _server_to_join;
+        std::string _server_to_join;
 
         struct {
             let::main_menu main;

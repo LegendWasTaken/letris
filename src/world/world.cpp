@@ -5,10 +5,15 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 
     while (buffer.has_left()) {
         const auto header = let::packets::reader::peek_header(buffer);
+
         switch (header.id.val)
         {
             case 0x0: {
                 const auto packet = let::packets::read<packets::state::play>::keep_alive(buffer);
+
+                spdlog::debug("Processing keep alive packet");
+
+                let::packets::write<packets::state::play>::keep_alive(outgoing, packet.keep_alive_id);
                 break;
             }
 
@@ -379,6 +384,9 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                 const auto packet = let::packets::read<packets::state::play>::resource_pack_send(buffer);
                 break;
             }
+
+            default:
+                LET_EXCEPTION(exception::source_type::network, "Unimplemented packet: {}", header.id.val);
         }
     }
 }

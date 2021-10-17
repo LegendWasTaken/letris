@@ -4,6 +4,8 @@
 #include <common/network/packets.h>
 #include <common/exception.h>
 
+#include <spdlog/spdlog.h>
+
 namespace let {
     class world {
     public:

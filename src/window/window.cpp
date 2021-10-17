@@ -15,8 +15,6 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
     glfwMakeContextCurrent(_window);
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
-    _texture_callback = []() -> std::optional<std::uint32_t> { return std::nullopt; };
-
     glfwSetWindowUserPointer(_window, this);
 
     glfwSetCursorPosCallback(_window, _glfw_cursor_position_callback);
@@ -48,27 +46,19 @@ glm::ivec2 let::window::resolution() const noexcept {
     return glm::ivec2(_width, _height);
 }
 
-void let::window::set_texture_callback(std::function<std::optional<std::uint32_t>()> texture_callback) {
-    ZoneScopedN("window::set_texture_callback");
-    _texture_callback = std::move(texture_callback);
-}
-
-void let::window::display_frame() {
+void let::window::display_frame(let::window::render_targets targets) {
     ZoneScopedN("window::display_frame");
     glfwMakeContextCurrent(_window);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-//    glClear(GL_COLOR_BUFFER_BIT);
-
-    auto texture_handle = _texture_callback();
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     _opengl_manager->bind(_fullscreen_program);
-//    _opengl_manager->uniform("use", glm::ivec3(0.2, 0.3, 0.7));
 
-    if (texture_handle.has_value()) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture_handle.value());
-    }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, targets.gui);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, targets.rendered);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 

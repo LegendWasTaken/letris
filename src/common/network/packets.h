@@ -266,6 +266,7 @@ namespace let::packets {
             let::angle yaw;
             let::angle pitch;
             std::int16_t current_item;
+            let::entity_metadata data;
         };
 
         [[nodiscard]] static spawn_player_packet spawn_player(let::network::byte_buffer
@@ -417,7 +418,7 @@ namespace let::packets {
                                                                       &buffer);
 
         struct entity_status_packet : public reader::incoming_packet {
-            let::var_int entity_id;
+            std::int32_t entity_id;
             std::byte entity_status;
         };
 
@@ -484,7 +485,7 @@ namespace let::packets {
             };
 
             let::var_int entity_id;
-            let::var_int property_count;
+            std::int32_t property_count;
             std::vector<property> properties;
         };
 
@@ -529,7 +530,7 @@ namespace let::packets {
         struct block_break_animation_packet : public reader::incoming_packet {
             int entity_id;
             glm::ivec3 position;
-            std::uint8_t stage;
+            std::byte stage;
         };
 
         [[nodiscard]] static block_break_animation_packet block_break_animation(let::network::byte_buffer

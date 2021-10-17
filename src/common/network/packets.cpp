@@ -243,6 +243,7 @@ let::packets::read<let::packets::state::play>::keep_alive(let::network::byte_buf
     keep_alive.header = read_header(buffer);
 
     let::network::decoder::read(buffer, keep_alive.keep_alive_id);
+
     return keep_alive;
 }
 
@@ -390,6 +391,7 @@ let::packets::read<let::packets::state::play>::spawn_player(let::network::byte_b
     let::network::decoder::read(buffer, packet.yaw);
     let::network::decoder::read(buffer, packet.pitch);
     let::network::decoder::read(buffer, packet.current_item);
+    let::network::decoder::read(buffer, packet.data);
 
     return packet;
 }
@@ -667,7 +669,7 @@ let::packets::read<let::packets::state::play>::entity_properties(let::network::b
     let::network::decoder::read(buffer, packet.entity_id);
     let::network::decoder::read(buffer, packet.property_count);
 
-    for (auto i = 0; i < packet.property_count.val; i++) {
+    for (auto i = 0; i < packet.property_count; i++) {
         auto property = entity_properties_packet::property();
         let::network::decoder::read(buffer, property.key);
         let::network::decoder::read(buffer, property.value);
@@ -778,7 +780,10 @@ let::packets::read<let::packets::state::play>::block_break_animation(let::networ
     auto packet = block_break_animation_packet();
     packet.header = read_header(buffer);
 
-    let::network::decoder::read(buffer, packet.entity_id);
+    auto id = let::var_int();
+    let::network::decoder::read(buffer, id);
+    packet.entity_id = id.val;
+
     let::network::decoder::read(buffer, packet.position);
     let::network::decoder::read(buffer, packet.stage);
 
@@ -846,7 +851,9 @@ let::packets::read<let::packets::state::play>::sound_effect(let::network::byte_b
     packet.header = read_header(buffer);
 
     let::network::decoder::read(buffer, packet.name);
-    let::network::decoder::read(buffer, packet.position);
+    let::network::decoder::read(buffer, packet.position.x);
+    let::network::decoder::read(buffer, packet.position.y);
+    let::network::decoder::read(buffer, packet.position.z);
     let::network::decoder::read(buffer, packet.volume);
     let::network::decoder::read(buffer, packet.pitch);
 

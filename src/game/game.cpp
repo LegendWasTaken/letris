@@ -11,7 +11,34 @@ let::game::game(let::network::game *game_network, let::window *window, let::user
 
 void let::game::start() {
     ZoneScopedN("game::start");
-    _window->set_texture_callback([this]() {
+
+    _running = true;
+
+    while (!_window->should_close() && _running) {
+        if (_game_network->status() == network::game::connection_status::connected ||
+            _game_network->status() == network::game::connection_status::connecting) {
+            _game_network->_process();
+
+            if (_game_network->status() == network::game::connection_status::connected) {
+                static auto out_going = let::network::byte_buffer();
+                auto incoming = _game_network->incoming();
+                _world->process_packets(incoming, out_going);
+                _game_network->send_data(out_going);
+            }
+
+        } else {
+            auto target_server = _server_to_join;
+
+            if (!target_server.empty()) {
+                spdlog::info("Attempting to join: {}", target_server);
+
+                // Todo: Custom ports
+                _game_network->connect(target_server, 25565);
+
+                _server_to_join.clear();
+            }
+        }
+
         const auto mouse = _window->mouse();
         const auto keyboard = _window->keyboard();
 
@@ -23,64 +50,13 @@ void let::game::start() {
         _ui_renderer->render();
         _ui_renderer->read_into(_gpu.texture.target);
 
-        return _gpu.texture.target;
-    });
+        _gpu.texture.render_target = _renderer->render();
 
-    _running = true;
-
-    auto world_thread = std::thread([this]() {
-        try {
-            while (_running) {
-                if (_game_network->status() == network::game::connection_status::connected ||
-                    _game_network->status() == network::game::connection_status::connecting) {
-                    _game_network->_process();
-
-                    if (_game_network->status() == network::game::connection_status::connected) {
-                        static auto out_going = let::network::byte_buffer();
-                        auto incoming = _game_network->incoming();
-                        _world->process_packets(incoming, out_going);
-                        _game_network->send_data(out_going);
-                    }
-
-                } else {
-                    auto target_server = static_cast<std::string>(_server_to_join.value());
-
-                    if (!target_server.empty()) {
-                        spdlog::info("Attempting to join: {}", target_server);
-
-                        // Todo: Custom ports
-                        _game_network->connect(target_server, 25565);
-
-
-                        static_cast<std::string &>(_server_to_join.value()).clear();
-                    }
-                }
-            }
-        } catch (const let::exception &exception) {
-            const auto source = exception.where();
-            spdlog::critical("Experienced an unrecoverable exception: "
-                             "\n\tReason: {}"
-                             "\n\tType: {}"
-                             "\n\tLocation: {}:{}",
-                             exception.what(), source.type, source.file, source.line);
-            _running = false;
-        } catch (const std::exception &exception) {
-            spdlog::critical("Experienced a C++ exception: "
-                             "\n\tReason: {}",
-                             exception.what());
-            _running = false;
-        } catch (...) {
-            spdlog::critical("Experienced an unknown exception, the dirt gods aren't happy");
-            _running = false;
-        }
-    });
-
-    while (!_window->should_close() && _running)
-        _window->display_frame();
-
-    if (_running)
-        _running = false;
-    world_thread.join();
+        _window->display_frame({
+            .gui = _gpu.texture.target,
+            .rendered = _gpu.texture.render_target
+        });
+    }
 }
 
 void let::game::_initialize_menus() {
@@ -146,7 +122,9 @@ void let::game::_initialize_menus() {
         server_name_str.resize(str_len);
         JSStringGetUTF8CString(opaque_string, server_name_str.data(), str_len);
 
-        static_cast<std::string&>(_server_to_join.value()) = server_name_str;
+        _server_to_join = server_name_str;
+
+        spdlog::debug("Clicked server: {}", _server_to_join);
     });
 
     _ui_renderer->use(&_menus.main);
@@ -162,15 +140,10 @@ void let::game::_create_gpu_resources() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _current_resolution.x, _current_resolution.y, 0, GL_BGRA, GL_UNSIGNED_BYTE,
                  nullptr);
+}
 
-//    glGenTextures(1, &_gpu.texture.render_target);
-//    glBindTexture(GL_TEXTURE_2D, _gpu.texture.render_target);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _current_resolution.x, _current_resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-//                 nullptr);
+void let::game::_world_tick() {
+
 }
 
 let::game_builder &let::game_builder::with_network(let::network::game &game_network) {

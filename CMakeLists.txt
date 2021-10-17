@@ -83,7 +83,7 @@ endif ()
 target_link_directories(Letris_lib PUBLIC ${CMAKE_SOURCE_DIR}/assets/libs/)
 target_include_directories(Letris_lib PUBLIC external src)
 target_link_libraries(Letris_lib PUBLIC glm glfw sockpp-static nlohmann_json::nlohmann_json zlib AppCore Ultralight UltralightCore WebCore daw::daw-header-libraries spdlog::spdlog)
-target_compile_definitions(Letris_lib PUBLIC GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}")
+target_compile_definitions(Letris_lib PUBLIC GLFW_INCLUDE_NONE ${LET_TRACY_MACRO} -DLETRIS_ASSET_PATH="${LETRIS_ASSET_PATH_VAR}" NOMINMAX)
 
 add_executable(Letris src/main.cpp src/common/thread/locked_resource.h)
 target_link_libraries(Letris PUBLIC Letris_lib)

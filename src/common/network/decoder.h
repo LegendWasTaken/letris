@@ -167,13 +167,13 @@ namespace let::network::decoder {
         {
             auto item_count = std::uint8_t();
             auto damage = std::int16_t();
+            auto nbt_data = std::byte();
             read(buffer, item_count);
             read(buffer, damage);
+            read(buffer, nbt_data);
 
-            LET_EXCEPTION(exception::source_type::network, "Untested, test this codepath");
-            if (damage != 0xFFFF) {
+            if (nbt_data != std::byte(0))
                 t_slot.nbt_data = nbt::node::read(buffer);
-            }
 
             t_slot.item_id = block_data;
             t_slot.item_count = item_count;
