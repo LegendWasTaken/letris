@@ -2,13 +2,14 @@
 
 #include <common/network/byte_buffer.h>
 #include <common/network/types.h>
+#include <common/exception.h>
 
 #include <string>
 #include <stdexcept>
 
 namespace let::network::decoder {
     inline void read(let::network::byte_buffer &buffer, bool &value) {
-        value = !static_cast<bool>(buffer.next_byte());
+        value = static_cast<bool>(buffer.next_byte());
     }
 
     inline void read(let::network::byte_buffer &buffer, std::byte &value) {
@@ -85,7 +86,8 @@ namespace let::network::decoder {
             result |= (val << (7 * numRead));
 
             numRead++;
-            if (numRead > 5) throw std::runtime_error("VarInt too big");
+            if (numRead > 5)
+                LET_EXCEPTION(exception::source_type::network, "VarInt too large");
         } while ((read & 0b10000000) != 0);
 
         value.val = result;
@@ -101,7 +103,8 @@ namespace let::network::decoder {
             result |= (val << (7 * numRead));
 
             numRead++;
-            if (numRead > 10) throw std::runtime_error("VarLong too big");
+            if (numRead > 10)
+                LET_EXCEPTION(exception::source_type::network, "Varlong too large");
         } while ((read & 0b10000000) != 0);
 
         value.val = result;
@@ -111,7 +114,7 @@ namespace let::network::decoder {
         auto var = let::var_int(0);
         read(buffer, var);
         auto length = static_cast<std::int32_t>(var);
-        if (length < 0 || length > 32767) throw std::runtime_error("String too large!");
+        if (length < 0 || length > 32767) LET_EXCEPTION(exception::source_type::network, "String too large");
 
         auto data = buffer.next_bytes(length);
 
@@ -158,19 +161,22 @@ namespace let::network::decoder {
     }
 
     inline void read(let::network::byte_buffer &buffer, let::slot &t_slot) {
-        auto present = false;
-        read(buffer, present);
-        if (present)
+        auto block_data = std::int16_t();
+        read(buffer, block_data);
+        if (block_data != -1)
         {
-            auto id = let::var_int();
-            auto item_count = let::var_int();
-
-            read(buffer, id);
+            auto item_count = std::uint8_t();
+            auto damage = std::int16_t();
             read(buffer, item_count);
-            auto node = nbt::node::read(buffer);
-            t_slot.item_id = id.val;
-            t_slot.item_count = item_count.val;
-            t_slot.nbt_data = node;
+            read(buffer, damage);
+
+            LET_EXCEPTION(exception::source_type::network, "Untested, test this codepath");
+            if (damage != 0xFFFF) {
+                t_slot.nbt_data = nbt::node::read(buffer);
+            }
+
+            t_slot.item_id = block_data;
+            t_slot.item_count = item_count;
         }
     }
 

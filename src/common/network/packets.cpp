@@ -956,6 +956,7 @@ let::packets::read<let::packets::state::play>::window_items(let::network::byte_b
     let::network::decoder::read(buffer, packet.id);
 
     auto count = std::int16_t();
+    let::network::decoder::read(buffer, count);
     packet.slots.reserve(count);
     for (int i = 0; i < count; i++) {
         auto slot = let::slot();
@@ -1056,8 +1057,9 @@ let::packets::read<let::packets::state::play>::update_block_entity(let::network:
     auto packet = update_block_entity_packet();
     packet.header = read_header(buffer);
 
-    LET_EXCEPTION(exception::source_type::network, "Attempted to parse unimplemented packet");
-    // Todo: Figure out how to parse the optional NBT tag
+    let::network::decoder::read(buffer, packet.position);
+    let::network::decoder::read(buffer, packet.action);
+    packet.data = let::nbt::node::read_optional(buffer);
 
     return packet;
 }
@@ -1109,54 +1111,67 @@ let::packets::read<let::packets::state::play>::player_list_item(let::network::by
         auto player = player_list_item_packet::player_data();
 
         let::network::decoder::read(buffer, player.name);
+        switch (action.val) {
+            case 0:  {
+                let::network::decoder::read(buffer, player.add_player.name);
+                auto number_props = let::var_int();
+                let::network::decoder::read(buffer, number_props);
 
-        auto number_props = let::var_int();
-        let::network::decoder::read(buffer, number_props);
+                player.add_player.properties.reserve(number_props.val);
+                for (int j = 0; j < number_props.val; j++) {
+                    auto property = player_list_item_packet::player_data::property();
 
-        player.properties.reserve(number_props.val);
-        for (int j = 0; j < number_props.val; j++) {
-            auto property = player_list_item_packet::player_data::property();
+                    let::network::decoder::read(buffer, property.name);
+                    let::network::decoder::read(buffer, property.value);
+                    let::network::decoder::read(buffer, property.is_signed);
 
-            let::network::decoder::read(buffer, property.name);
-            let::network::decoder::read(buffer, property.value);
-            let::network::decoder::read(buffer, property.is_signed);
+                    if (property.is_signed) {
+                        auto signature = std::string();
+                        let::network::decoder::read(buffer, signature);
+                        property.signature = std::move(signature);
+                    }
 
-            if (property.is_signed) {
-                auto signature = std::string();
-                let::network::decoder::read(buffer, signature);
-                property.signature = std::move(signature);
+                    player.add_player.properties.push_back(std::move(property));
+                }
+
+                auto gamemode = let::var_int();
+                auto ping = let::var_int();
+                let::network::decoder::read(buffer, gamemode);
+                let::network::decoder::read(buffer, ping);
+                player.add_player.gamemode = gamemode.val;
+                player.add_player.ping = ping.val;
+
+                auto has_display_name = bool();
+                let::network::decoder::read(buffer, has_display_name);
+                if (has_display_name) {
+                    auto display_name = let::chat();
+                    let::network::decoder::read(buffer, display_name);
+                    player.add_player.display_name = std::move(display_name);
+                }
+                break;
             }
-
-            player.properties.push_back(std::move(property));
-        }
-
-        auto gamemode = let::var_int();
-        auto ping = let::var_int();
-        let::network::decoder::read(buffer, gamemode);
-        let::network::decoder::read(buffer, ping);
-        player.gamemode = gamemode.val;
-        player.ping = ping.val;
-
-        auto has_display_name = bool();
-        let::network::decoder::read(buffer, has_display_name);
-        if (has_display_name) {
-            auto display_name = let::chat();
-            let::network::decoder::read(buffer, display_name);
-            player.display_name = std::move(display_name);
-        }
-
-        auto updated_gamemode = let::var_int();
-        auto updated_ping = let::var_int();
-        let::network::decoder::read(buffer, updated_gamemode);
-        let::network::decoder::read(buffer, updated_ping);
-        player.update_gamemode = updated_gamemode.val;
-        player.update_latency = updated_ping.val;
-
-        let::network::decoder::read(buffer, has_display_name);
-        if (has_display_name) {
-            auto name = let::chat();
-            let::network::decoder::read(buffer, name);
-            player.update_display_name = std::move(name);
+            case 1: {
+                auto gamemode = let::var_int();
+                let::network::decoder::read(buffer, gamemode);
+                player.update_gamemode.gamemode = gamemode.val;
+                break;
+            }
+            case 2: {
+                auto ping = let::var_int();
+                let::network::decoder::read(buffer, ping);
+                player.update_latency.ping = ping.val;
+                break;
+            }
+            case 3: {
+                auto has_display_name = bool();
+                let::network::decoder::read(buffer, has_display_name);
+                if (has_display_name) {
+                    auto display_name = let::chat();
+                    let::network::decoder::read(buffer, display_name);
+                    player.update_display_name.display_name = std::move(display_name);
+                }
+                break;
+            }
         }
     }
 

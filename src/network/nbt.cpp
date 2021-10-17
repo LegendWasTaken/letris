@@ -23,6 +23,15 @@ let::nbt::node let::nbt::node::read(let::network::byte_buffer &buffer) {
     return _read_node(buffer);
 }
 
+std::optional<let::nbt::node> let::nbt::node::read_optional(let::network::byte_buffer &buffer) {
+    const auto type = ::read_type(buffer);
+    if (type == tag_type::END)
+        return std::nullopt;
+
+    buffer.step_back(1);
+    return _read_node(buffer);
+}
+
 let::nbt::node
 let::nbt::node::_read_node(let::network::byte_buffer &buffer, tag_type parent, tag_type list_type) {
     // We use end to signify that we're on the first node, it should only get called with `end`

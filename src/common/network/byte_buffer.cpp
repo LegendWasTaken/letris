@@ -85,5 +85,5 @@ void *let::network::byte_buffer::data() {
 }
 
 bool let::network::byte_buffer::has_left() const noexcept {
-    return _read_head - 1 == _data.size();
+    return _read_head < _data.size();
 }

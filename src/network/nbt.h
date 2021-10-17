@@ -33,6 +33,8 @@ namespace let::nbt
 
         [[nodiscard]] static node read(let::network::byte_buffer &buffer);
 
+        [[nodiscard]] static std::optional<node> read_optional(let::network::byte_buffer &buffer);
+
     private:
         static node _read_node(
                 let::network::byte_buffer &buffer,

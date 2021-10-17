@@ -711,22 +711,39 @@ namespace let::packets {
                                                           &buffer);
 
         struct player_list_item_packet : public reader::incoming_packet {
+            // Todo: enum to signify which to use, to lead to less errors and mistakes
             int action;
             struct player_data {
                 let::uuid name;
+
                 struct property {
                     std::string name;
                     std::string value;
                     bool is_signed;
                     std::optional<std::string> signature;
                 };
-                std::vector<property> properties;
-                int gamemode;
-                int ping;
-                std::optional<let::chat> display_name;
-                int update_gamemode;
-                int update_latency;
-                std::optional<let::chat> update_display_name;
+                struct {
+                    std::string name;
+                    std::vector<property> properties;
+                    int gamemode;
+                    int ping;
+                    std::optional<let::chat> display_name;
+                } add_player;
+
+                struct {
+                    int gamemode;
+                } update_gamemode;
+
+                struct {
+                    int ping;
+                } update_latency;
+
+                struct {
+                    std::optional<let::chat> display_name;
+                } update_display_name;
+
+                struct {
+                } remove_player;
             };
             std::vector<player_data> players;
         };
@@ -869,7 +886,6 @@ namespace let::packets {
             struct {
                 int warning_blocks;
             } set_warning_blocks;
-
         };
 
         [[nodiscard]] static world_border_packet world_border(let::network::byte_buffer

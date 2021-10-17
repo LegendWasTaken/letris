@@ -43,7 +43,6 @@ FetchContent_Declare(
         GIT_TAG v1.29.7
 )
 
-option(QUILL_FMT_EXTERNAL "" ON)
 FetchContent_Declare(
         fc_spdlog
         GIT_REPOSITORY https://github.com/gabime/spdlog

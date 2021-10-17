@@ -39,7 +39,7 @@ void let::game::start() {
                         static auto out_going = let::network::byte_buffer();
                         auto incoming = _game_network->incoming();
                         _world->process_packets(incoming, out_going);
-                        _game_network->send_data(out_going.next_bytes(out_going.size()));
+                        _game_network->send_data(out_going);
                     }
 
                 } else {

@@ -124,7 +124,7 @@ chat_data = json;
     public:
         std::uint8_t item_count;
         std::int32_t item_id;
-        nbt::node nbt_data;
+        std::optional<nbt::node> nbt_data;
     };
 
     class identifier {

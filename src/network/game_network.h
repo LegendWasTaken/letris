@@ -28,7 +28,7 @@ namespace let::network {
 
         /// \brief Send data to the server currently connected to, only valid if mode is [game]
         /// \param data The data to send to the server
-        void send_data(const std::vector<std::byte> &data);
+        void send_data(let::network::byte_buffer &data);
 
         /// \brief Get the incoming game packet data, only valid if mode is [game]
         /// \return Incoming packet data

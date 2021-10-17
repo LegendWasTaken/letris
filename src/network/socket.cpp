@@ -25,6 +25,9 @@ void let::network::socket::send(let::network::byte_buffer &data) {
 void let::network::socket::receive(let::network::byte_buffer &data, size_t byte_size) {
     ZoneScopedN("socket::receive");
 
+    if (byte_size == 94)
+        auto a = 5;
+
     auto buffer = std::array<std::byte, 1024>();
 
     auto total_read = size_t(0);
