@@ -1,6 +1,7 @@
 #include "world.h"
 
 void let::world::process_packets(let::network::byte_buffer &buffer, let::network::byte_buffer &outgoing) {
+    ZoneScopedN("world::process_packets");
     outgoing.clear();
 
     while (buffer.has_left()) {
@@ -19,6 +20,8 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 
             case 0x1: {
                 const auto packet = let::packets::read<packets::state::play>::join_game(buffer);
+
+                _player = _create_entity_with_id(packet.entity_id);
 
                 const auto client_brand = std::string("Letris 1.8.9");
                 auto brand_bytes = std::vector<std::byte>();
@@ -47,6 +50,8 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 
             case 0x5: {
                 const auto packet = let::packets::read<packets::state::play>::spawn_position(buffer);
+
+                _entities.emplace<entity::home>(_player, packet.position);
                 break;
             }
 
@@ -62,6 +67,9 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 
             case 0x8: {
                 const auto packet = let::packets::read<packets::state::play>::player_pos_and_look(buffer);
+
+                _entities.emplace<entity::connected>(_player);
+                _entities.emplace<entity::position>(_player, glm::vec3(packet.x, packet.y, packet.z));
                 break;
             }
 
@@ -389,4 +397,16 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                 LET_EXCEPTION(exception::source_type::network, "Unimplemented packet: {}", header.id.val);
         }
     }
+
+    for (auto player : _entities.view<let::entity::position, let::entity::connected>()) {
+        auto pos = _entities.get<entity::position>(player);
+        let::packets::write<packets::state::play>::player_position(outgoing, pos.x, pos.y, pos.z, true);
+    }
+}
+
+uint64_t let::world::_create_entity_with_id(int server_id) {
+    const auto local_id = _entities.create(server_id);
+    if (local_id != server_id)
+        LET_EXCEPTION(exception::source_type::world, "Failed to create entity with ID: {}, got {}", server_id, local_id);
+    return local_id;
 }

@@ -12,7 +12,7 @@
 namespace let {
     class exception : std::exception {
     private:
-        std::array<std::string, 8> _source_type_lut = {
+        std::array<std::string, 9> _source_type_lut = {
             "network",
             "render",
             "window",
@@ -21,6 +21,7 @@ namespace let {
             "nbt",
             "opengl",
             "world",
+            "async",
         };
     public:
         // Hey Caio, if you add one here. Remember to update the array above (maybe it's moved), and the test for it
@@ -34,6 +35,7 @@ namespace let {
             nbt,
             opengl,
             world,
+            async
         };
 
         struct source {

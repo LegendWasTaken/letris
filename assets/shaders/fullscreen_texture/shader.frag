@@ -19,8 +19,8 @@ void main()
     vec4 rendered_sample = texture(rendered, non_flipped);
 
     final_colour = gui_sample;
-    if (rendered_sample.w != 0)
-        final_colour = rendered_sample.xyz;
+//    if (rendered_sample.w != 0)
+//        final_colour = rendered_sample.xyz;
 
     frag_colour = vec4(final_colour, 1);
 }
