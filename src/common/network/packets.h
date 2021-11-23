@@ -57,100 +57,100 @@ namespace let::packets {
     template<>
     class write<state::play> : public writer {
     public:
-        [[nodiscard]] static void keep_alive(let::network::byte_buffer &buffer, let::var_int id);
+        static void keep_alive(let::network::byte_buffer &buffer, let::var_int id);
 
 
-        [[nodiscard]] static void chat_message(let::network::byte_buffer &buffer, const std::string &message);
+        static void chat_message(let::network::byte_buffer &buffer, const std::string &message);
 
 
-        [[nodiscard]] static void use_entity(let::network::byte_buffer &buffer, let::var_int target, let::var_int type,
+        static void use_entity(let::network::byte_buffer &buffer, let::var_int target, let::var_int type,
                                              std::optional<glm::vec3> target_pos);
 
 
-        [[nodiscard]] static void player(let::network::byte_buffer &buffer, bool on_ground);
+        static void player(let::network::byte_buffer &buffer, bool on_ground);
 
 
-        [[nodiscard]] static void
+        static void
         player_position(let::network::byte_buffer &buffer, double x, double feet_y, double z, bool on_ground);
 
 
-        [[nodiscard]] static void
+        static void
         player_look(let::network::byte_buffer &buffer, float yaw, float pitch, bool on_ground);
 
 
-        [[nodiscard]] static void
+        static void
         player_position_and_look(let::network::byte_buffer &buffer, double x, double feet_y, double z, float yaw,
                                  float pitch, bool on_ground);
 
 
-        [[nodiscard]] static void
+        static void
         player_digging(let::network::byte_buffer &buffer, std::byte status, glm::ivec3 position, std::byte face);
 
 
-        [[nodiscard]] static void
+        static void
         player_block_placement(let::network::byte_buffer &buffer, glm::ivec3 pos, std::byte face, let::slot item,
                                std::byte cursor_x, std::byte cursor_y, std::byte cursor_z);
 
 
-        [[nodiscard]] static void held_item_change(let::network::byte_buffer &buffer, std::int16_t slot);
+        static void held_item_change(let::network::byte_buffer &buffer, std::int16_t slot);
 
 
-        [[nodiscard]] static void animation(let::network::byte_buffer &buffer);
+        static void animation(let::network::byte_buffer &buffer);
 
 
-        [[nodiscard]] static void
+        static void
         entity_action(let::network::byte_buffer &buffer, let::var_int entity, let::var_int action,
                       let::var_int action_parameter);
 
 
-        [[nodiscard]] static void
+        static void
         steer_vehicle(let::network::byte_buffer &buffer, float sideways, float forward, std::uint8_t flags);
 
 
-        [[nodiscard]] static void close_window(let::network::byte_buffer &buffer, std::uint8_t window_id);
+        static void close_window(let::network::byte_buffer &buffer, std::uint8_t window_id);
 
 
-        [[nodiscard]] static void click_window(let::network::byte_buffer &buffer);
+        static void click_window(let::network::byte_buffer &buffer);
 
 
-        [[nodiscard]] static void
+        static void
         confirm_transaction(let::network::byte_buffer &buffer, std::byte window_id, std::int16_t action_number,
                             bool accepted);
 
 
-        [[nodiscard]] static void creative_inventory_action(let::network::byte_buffer &buffer);
+        static void creative_inventory_action(let::network::byte_buffer &buffer);
 
 
-        [[nodiscard]] static void
+        static void
         enchant_item(let::network::byte_buffer &buffer, std::byte window_id, std::byte enchantment);
 
 
-        [[nodiscard]] static void update_sign(let::network::byte_buffer &buffer);
+        static void update_sign(let::network::byte_buffer &buffer);
 
 
-        [[nodiscard]] static void
+        static void
         player_abilities(let::network::byte_buffer &buffer, std::byte flags, float flying_speed, float walking_speed);
 
 
-        [[nodiscard]] static void tab_complete(let::network::byte_buffer &buffer, const std::string &text, bool has_pos,
+        static void tab_complete(let::network::byte_buffer &buffer, const std::string &text, bool has_pos,
                                                std::optional<glm::ivec3> looking_at_block);
 
 
-        [[nodiscard]] static void
+        static void
         client_settings(let::network::byte_buffer &buffer, const std::string &locale, std::byte view_distance,
                         std::byte chat_mode, bool chat_colours, std::uint8_t skin_parts);
 
 
-        [[nodiscard]] static void client_status(let::network::byte_buffer &buffer, let::var_int action);
+        static void client_status(let::network::byte_buffer &buffer, let::var_int action);
 
 
-        [[nodiscard]] static void plugin_message(let::network::byte_buffer &buffer, const std::string &channel,
+        static void plugin_message(let::network::byte_buffer &buffer, const std::string &channel,
                                                  const std::vector<std::byte> &data);
 
 
-        [[nodiscard]] static void spectate(let::network::byte_buffer &buffer, let::uuid target_player);
+        static void spectate(let::network::byte_buffer &buffer, let::uuid target_player);
 
-        [[nodiscard]] static void
+        static void
         resource_pack_status(let::network::byte_buffer &buffer, const std::string &hash, let::var_int result);
     };
 
@@ -493,11 +493,13 @@ namespace let::packets {
                                                                         &buffer);
 
         struct chunk_data_packet : public reader::incoming_packet {
+            int32_t x;
+            int32_t z;
             std::optional<let::chunk> chunk;
         };
 
         [[nodiscard]] static chunk_data_packet chunk_data(let::network::byte_buffer
-                                                          &buffer);
+                                                          &buffer, bool in_nether);
 
         struct multi_block_change_packet : public reader::incoming_packet {
             struct block_target {
@@ -537,7 +539,7 @@ namespace let::packets {
                                                                                 &buffer);
 
         struct map_chunk_bulk_packet : public reader::incoming_packet {
-
+            std::vector<let::chunk> chunks;
         };
 
         [[nodiscard]] static map_chunk_bulk_packet map_chunk_bulk(let::network::byte_buffer

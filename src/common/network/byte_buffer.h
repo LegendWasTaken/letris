@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <span>
 
 namespace let::network
 {
@@ -16,7 +17,7 @@ namespace let::network
 
     void write_byte(std::byte byte);
 
-    void write_bytes(const std::byte* bytes, size_t count);
+    void write_bytes(const std::byte *bytes, size_t count);
 
     void clear();
 
@@ -50,6 +51,5 @@ namespace let::network
 
     std::vector<std::byte> _data;
     std::size_t _read_head = 0;
-
   };
 }

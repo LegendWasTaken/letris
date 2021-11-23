@@ -18,7 +18,15 @@ let::logical::keyboard::keys() {
 }
 
 bool let::logical::keyboard::is_key_down(let::logical::keyboard::key_code key) const noexcept {
-    return _keys[static_cast<int>(key)].press_state == state::pressed;
+    return
+            _keys[static_cast<int>(key)].press_state == state::held ||
+            _keys[static_cast<int>(key)].press_state == state::repeat ||
+            _keys[static_cast<int>(key)].press_state == state::pressed;
+}
+
+bool let::logical::keyboard::is_key_pressed(let::logical::keyboard::key_code key) const noexcept {
+    return
+        _keys[static_cast<int>(key)].press_state == state::pressed;
 }
 
 bool let::logical::keyboard::is_key_up(let::logical::keyboard::key_code key) const noexcept {
@@ -50,4 +58,16 @@ let::logical::mouse::button_state let::logical::mouse::state_of(let::logical::mo
 
 glm::ivec2 let::logical::mouse::position() const noexcept {
     return _position;
+}
+
+void let::logical::mouse::hide() {
+    _hidden = true;
+}
+
+void let::logical::mouse::show() {
+    _hidden = false;
+}
+
+bool let::logical::mouse::hidden() const noexcept {
+    return _hidden;
 }

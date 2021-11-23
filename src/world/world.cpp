@@ -12,8 +12,6 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
             case 0x0: {
                 const auto packet = let::packets::read<packets::state::play>::keep_alive(buffer);
 
-                spdlog::debug("Processing keep alive packet");
-
                 let::packets::write<packets::state::play>::keep_alive(outgoing, packet.keep_alive_id);
                 break;
             }
@@ -68,8 +66,16 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
             case 0x8: {
                 const auto packet = let::packets::read<packets::state::play>::player_pos_and_look(buffer);
 
-                _entities.emplace<entity::connected>(_player);
-                _entities.emplace<entity::position>(_player, glm::vec3(packet.x, packet.y, packet.z));
+                if (_entities.any_of<entity::connected>(_player))
+                {
+                    _entities.get<entity::position>(_player).data = glm::vec3(packet.x, packet.y, packet.z);
+                }
+                else
+                {
+                    _entities.emplace<entity::connected>(_player);
+                    _entities.emplace<entity::position>(_player, glm::vec3(packet.x, packet.y, packet.z));
+                }
+
                 break;
             }
 
@@ -194,7 +200,7 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
             }
 
             case 0x21: {
-                const auto packet = let::packets::read<packets::state::play>::chunk_data(buffer);
+                const auto packet = let::packets::read<packets::state::play>::chunk_data(buffer, false);
                 break;
             }
 
@@ -219,7 +225,9 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
             }
 
             case 0x26: {
-                const auto packet = let::packets::read<packets::state::play>::map_chunk_bulk(buffer);
+                auto packet = let::packets::read<packets::state::play>::map_chunk_bulk(buffer);
+                for (auto &chunk : packet.chunks)
+                    _chunks.insert({let::chunk::key(chunk), std::move(chunk)});
                 break;
             }
 
@@ -398,9 +406,10 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
         }
     }
 
+
+
     for (auto player : _entities.view<let::entity::position, let::entity::connected>()) {
-        auto pos = _entities.get<entity::position>(player);
-        let::packets::write<packets::state::play>::player_position(outgoing, pos.x, pos.y, pos.z, true);
+        let::packets::write<packets::state::play>::player(outgoing, true);
     }
 }
 
@@ -409,4 +418,11 @@ uint64_t let::world::_create_entity_with_id(int server_id) {
     if (local_id != server_id)
         LET_EXCEPTION(exception::source_type::world, "Failed to create entity with ID: {}, got {}", server_id, local_id);
     return local_id;
+}
+
+glm::vec3 let::world::world_pos() const {
+    if (_entities.any_of<entity::position>(_player))
+        return _entities.get<entity::position>(_player).data;
+    else
+        return glm::vec3(0, 0, 0);
 }

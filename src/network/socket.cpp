@@ -61,7 +61,7 @@ int let::network::socket::ask(let::network::byte_buffer &data, size_t data_size)
     const auto read = ::recv(_socket.handle(), reinterpret_cast<char*>(buffer.data()), data_size, MSG_PEEK);
 
     if (read > 0) {
-        data.write_bytes(buffer.data(), read);
+        data.write_bytes(buffer.data(), buffer.size());
         return read;
     } else if (read == 0) {
         return 0;

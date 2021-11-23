@@ -20,7 +20,6 @@ int main() {
         auto user_input_renderer = let::user_input_renderer(&ultralight_renderer, {1920, 1080});
         auto server_querier = let::network::query();
         auto renderer = let::renderer(1920, 1080, &opengl_manager);
-        auto world = let::world();
 
         auto game = let::game_builder()
                 .with_network(game_network)
@@ -28,7 +27,6 @@ int main() {
                 .with_ui_renderer(user_input_renderer)
                 .with_server_querier(server_querier)
                 .with_renderer(renderer)
-                .with_world(world)
                 .build();
 
         game.start();

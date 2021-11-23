@@ -39,3 +39,19 @@ let::chunk_section *let::chunk::operator[](size_t y) noexcept {
 const let::chunk_section *let::chunk::operator[](size_t y) const noexcept {
     return sections[y].get();
 }
+
+std::unique_ptr<let::chunk_section> &let::chunk::section_at(size_t y) {
+    return sections[y];
+}
+
+std::uint64_t let::chunk::key(const let::chunk &chunk) noexcept {
+    return
+            ((static_cast<std::uint64_t>(chunk.x) << 32) & 0xFFFFFFFF00000000) |
+            ((static_cast<std::uint64_t>(chunk.z) <<  0) & 0x00000000FFFFFFFF);
+}
+
+std::uint64_t let::chunk::key(std::int32_t x, std::int32_t z) noexcept {
+    return
+            ((static_cast<std::uint64_t>(x) << 32) & 0xFFFFFFFF00000000) |
+            ((static_cast<std::uint64_t>(z) <<  0) & 0x00000000FFFFFFFF);
+}

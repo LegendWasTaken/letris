@@ -47,12 +47,10 @@ std::vector<std::byte> let::network::byte_buffer::next_bytes(std::size_t byte_co
     if (byte_count == 0)
         return {};
 
-    auto result = std::vector<std::byte>(byte_count);
-
-    for (std::size_t i = 0; i < byte_count; i++)
-        result[i] = _data[_read_head++];
-
-    return std::move(result);
+    auto data = std::vector<std::byte>(byte_count);
+    std::memcpy(data.data(), _data.data() + _read_head, byte_count);
+    _read_head += byte_count;
+    return data;
 }
 
 std::size_t let::network::byte_buffer::size() const noexcept {

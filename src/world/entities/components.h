@@ -12,13 +12,16 @@ namespace let::entity {
     struct connected {
     };
 
-    struct position : glm::vec3 {
+    struct position{
+        glm::vec3 data;
     };
 
-    struct home : glm::vec3 {
+    struct home {
+        glm::vec3 data;
     };
 
-    struct name : std::string {
+    struct name {
+        std::string data;
     };
 
     struct ping {

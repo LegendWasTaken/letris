@@ -33,12 +33,13 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
     });
 
     auto vertices = std::array<float, 9>({
-       -0.5, -0.5, 0.0,
-        0.5, -0.5, 0.0,
-        0.0,  0.5, 0.0
+       -0.5, -0.5, -5.0,
+        0.5, -0.5, -5.0,
+        0.0,  0.5, -5.0
     });
 
     glGenBuffers(1, &_tri.vbo);
+    glGenBuffers(1, &_tri.ebo);
     glGenVertexArrays(1, &_tri.vao);
 
     glBindVertexArray(_tri.vao);
@@ -50,20 +51,42 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
     glEnableVertexAttribArray(0);
 }
 
-std::uint32_t let::renderer::render() {
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
-//
-//    glEnable(GL_DEPTH_TEST);
+std::uint32_t let::renderer::render(const renderer::render_data &data) {
+    ZoneScopedN("renderer::render");
+    if (!data.vertices.empty())
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
+        glEnable(GL_DEPTH_TEST);
 
-    glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindVertexArray(_tri.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, _tri.vbo);
 
-    _gl_manager->bind(_triangle_program);
-    _gl_manager->uniform("tint", glm::vec3(0.2, 0.3, 0.8));
-    glBindVertexArray(_tri.vao);
+        glBufferData(GL_ARRAY_BUFFER, data.vertices.size_bytes(), data.vertices.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<const void *>(3 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size_bytes(), data.indices.data(), GL_STATIC_DRAW);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        const auto model = glm::mat4(1.0f);
+        const auto view = glm::translate(glm::mat4(1.0f), -data.offset);
+        const auto view_rot = data.rotation * view;
+
+        const auto proj = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100.f);
+        const auto mvp = proj * view_rot * model;
+
+        _gl_manager->bind(_triangle_program);
+        _gl_manager->uniform("mvp", mvp);
+        glBindVertexArray(_tri.vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
+        glDrawElements(GL_TRIANGLES, data.indices.size(), GL_UNSIGNED_INT, nullptr);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 
     return _framebuffer.texture;
 }

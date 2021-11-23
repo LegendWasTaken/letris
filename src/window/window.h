@@ -33,11 +33,16 @@ namespace let {
 
         [[nodiscard]] let::logical::keyboard keyboard() const noexcept;
 
+        [[nodiscard]] let::logical::mouse &mouse() noexcept;
+
+        [[nodiscard]] let::logical::keyboard &keyboard() noexcept;
+
         [[nodiscard]] glm::ivec2 resolution() const noexcept;
 
         struct render_targets {
             std::uint32_t gui;
             std::uint32_t rendered;
+            bool has_world;
         };
 
         void display_frame(render_targets);

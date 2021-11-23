@@ -82,7 +82,7 @@ void
 let::packets::write<let::packets::state::play>::player_position_and_look(let::network::byte_buffer &buffer, double x,
                                                                          double feet_y, double z, float yaw,
                                                                          float pitch, bool on_ground) {
-    write_header(buffer, 26, 0x6);
+    write_header(buffer, 34, 0x6);
     let::network::encoder::write(buffer, yaw);
     let::network::encoder::write(buffer, pitch);
     let::network::encoder::write(buffer, x);
@@ -689,24 +689,53 @@ let::packets::read<let::packets::state::play>::entity_properties(let::network::b
 }
 
 let::packets::read<let::packets::state::play>::chunk_data_packet
-let::packets::read<let::packets::state::play>::chunk_data(let::network::byte_buffer &buffer) {
+let::packets::read<let::packets::state::play>::chunk_data(let::network::byte_buffer &buffer, bool in_nether) {
     auto packet = chunk_data_packet();
     packet.header = read_header(buffer);
 
-    auto x = std::int32_t();
-    auto z = std::int32_t();
     auto ground_up = false;
     auto primary_bitmask = std::uint16_t();
     auto chunk_data_size = let::var_int();
 
-    let::network::decoder::read(buffer, x);
-    let::network::decoder::read(buffer, z);
+    let::network::decoder::read(buffer, packet.x);
+    let::network::decoder::read(buffer, packet.z);
     let::network::decoder::read(buffer, ground_up);
     let::network::decoder::read(buffer, primary_bitmask);
     let::network::decoder::read(buffer, chunk_data_size);
 
-    // Todo:
+    auto chunk = let::chunk(packet.x, packet.z);
 
+    for (auto j = 0; j < 16; j++)
+    {
+        const auto is_set = primary_bitmask & (1 << j);
+        if (is_set)
+        {
+            auto section = std::make_unique<let::chunk_section>();
+
+            const auto blocks = buffer.next_bytes(2 * 4096); // 2048 shorts for the blocks
+            std::memcpy(section->blocks.data(), blocks.data(), blocks.size());
+
+            chunk.section_at(j) = std::move(section);
+        }
+    }
+
+    for (auto j = 0; j < 16; j++)
+    {
+        const auto is_set = primary_bitmask & (1 << j);
+        if (is_set)
+            buffer.next_bytes(2048);
+    }
+
+    // Todo: figure this out from the chunk size
+    if (!in_nether)
+        for (auto j = 0; j < 16; j++)
+        {
+            const auto is_set = primary_bitmask & (1 << j);
+            if (is_set)
+                buffer.next_bytes(2048);
+        }
+
+    buffer.next_bytes(256);
 
     return packet;
 }
@@ -794,6 +823,69 @@ let::packets::read<let::packets::state::play>::map_chunk_bulk_packet
 let::packets::read<let::packets::state::play>::map_chunk_bulk(let::network::byte_buffer &buffer) {
     auto packet = map_chunk_bulk_packet();
     packet.header = read_header(buffer);
+
+    auto skylight = false;
+    let::network::decoder::read(buffer, skylight);
+
+    auto chunk_count = let::var_int();
+    let::network::decoder::read(buffer, chunk_count);
+
+    struct chunk_entry {
+        int32_t x;
+        int32_t z;
+        uint16_t mask;
+    };
+
+    auto entries = std::vector<chunk_entry>();
+    for (auto i = 0; i < chunk_count.val; i++)
+    {
+        auto entry = chunk_entry();
+
+        let::network::decoder::read(buffer, entry.x);
+        let::network::decoder::read(buffer, entry.z);
+        let::network::decoder::read(buffer, entry.mask);
+
+        entries.push_back(entry);
+    }
+
+    for (auto i = 0; i < chunk_count.val; i++)
+    {
+        const auto entry = entries[i];
+        auto chunk = let::chunk(entry.x, entry.z);
+
+        for (auto j = 0; j < 16; j++)
+        {
+            const auto is_set = entry.mask & (1 << j);
+            if (is_set)
+            {
+                auto section = std::make_unique<let::chunk_section>();
+
+                const auto blocks = buffer.next_bytes(2 * 4096); // 2048 shorts for the blocks
+                std::memcpy(section->blocks.data(), blocks.data(), blocks.size());
+
+                chunk.section_at(j) = std::move(section);
+            }
+        }
+
+        for (auto j = 0; j < 16; j++)
+        {
+            const auto is_set = entry.mask & (1 << j);
+            if (is_set)
+                buffer.next_bytes(2048);
+        }
+
+        if (skylight)
+            for (auto j = 0; j < 16; j++)
+            {
+                const auto is_set = entry.mask & (1 << j);
+                if (is_set)
+                    buffer.next_bytes(2048);
+            }
+
+        buffer.next_bytes(256);
+
+        packet.chunks.push_back(std::move(chunk));
+    }
 
     return packet;
 }

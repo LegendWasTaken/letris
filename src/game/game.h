@@ -11,7 +11,10 @@
 #include <tracy/Tracy.hpp>
 
 #include <common/exception.h>
+#include <common/timer.h>
 #include <common/thread/locked_resource.h>
+
+#include <glm/gtx/euler_angles.hpp>
 
 namespace let {
     class game {
@@ -19,7 +22,7 @@ namespace let {
         void start();
 
         game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer,
-             let::network::query *server_querier, let::renderer *renderer, let::world *world);
+             let::network::query *server_querier, let::renderer *renderer);
 
     private:
         let::network::game *_game_network;
@@ -27,11 +30,15 @@ namespace let {
         let::user_input_renderer *_ui_renderer;
         let::network::query *_server_querier;
         let::renderer *_renderer;
-        let::world *_world;
+        std::optional<let::world> _world;
 
         bool _running;
 
         std::string _server_to_join;
+
+        glm::vec3 _world_pos {};
+        glm::ivec2 _previous_mouse_pos;
+        glm::vec2 _rotation;
 
         struct {
             let::main_menu main;
@@ -52,7 +59,7 @@ namespace let {
 
         void _create_gpu_resources();
 
-        void _world_tick();
+        void _tick(double dt);
     };
 }
 
@@ -71,8 +78,6 @@ namespace let {
 
         [[nodiscard]] game_builder &with_renderer(let::renderer &renderer);
 
-        [[nodiscard]] game_builder &with_world(let::world &world);
-
         [[nodiscard]] let::game build() const;
 
     private:
@@ -85,8 +90,6 @@ namespace let {
         let::network::query *_server_querier = nullptr;
 
         let::renderer *_renderer = nullptr;
-
-        let::world *_world;
     };
 }
 

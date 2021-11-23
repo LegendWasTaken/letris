@@ -1,5 +1,7 @@
 #include "game_network.h"
 
+#include <spdlog/spdlog.h>
+
 let::network::game::game() : _compression_threshold(-1) {
     _processing_thread = std::thread([this] {
 //        _process();
@@ -13,6 +15,7 @@ let::network::game::~game() {
 
 void let::network::game::send_data(let::network::byte_buffer &data) {
     auto outgoing = data.next_bytes(data.size());
+    data.clear();
     _outgoing.write_bytes(outgoing.data(), outgoing.size());
     outgoing.clear();
 }
@@ -59,8 +62,6 @@ void let::network::game::_process() {
                 break;
             case connection_status::connected: {
                 const auto packet = incoming.next_bytes(incoming.size());
-                if (std::find(packet.begin(), packet.end(), std::byte(255)) != packet.end())
-                    const auto a = 5;
                 _incoming.write_bytes(packet.data(), packet.size());
                 incoming.clear();
                 break;
@@ -68,6 +69,8 @@ void let::network::game::_process() {
             case connection_status::disconnected:
                 // Shouldn't ever reach here...
                 break;
+            default:
+                LET_EXCEPTION(exception::source_type::network, "In an unreachable state");
         }
     }
 
@@ -99,6 +102,7 @@ void let::network::game::_handle_connecting_packet(let::network::byte_buffer &bu
             break;
         case 0x02: {
             const auto packet = let::packets::read<packets::state::login>::login_success(buffer);
+
             // We dont use any of the fields for now
             _status = connection_status::connected;
         }
@@ -117,13 +121,13 @@ void let::network::game::_decompress_packet(let::network::byte_buffer &source, s
 
     auto decompressed_data = std::vector<std::byte>(decompressed_size);
 
-    let::network::encoder::write(target, let::var_int(decompressed_size));
-
     const auto result = zng_uncompress(reinterpret_cast<uint8_t *>(decompressed_data.data()), &decompressed_size,
                    reinterpret_cast<uint8_t *>(source.data()), compressed_size);
 
     if (result != Z_OK)
         LET_EXCEPTION(exception::source_type::network, "Failed to decompressed buffer");
+
+    target.write_bytes(decompressed_data.data(), decompressed_data.size());
 }
 
 void let::network::game::_compress_packet(let::network::byte_buffer &source, let::network::byte_buffer &target) {
@@ -188,13 +192,19 @@ bool let::network::game::_read_packet(let::network::byte_buffer &data) {
         auto packet_length = _read_var_int();
         auto data_length = _read_var_int();
 
+        if (data_length.val == 125543)
+            const auto a = 5;
+
         const auto packet_data_size = packet_length.val - data_length.length();
 
         if (packet_data_size > 0)
             _server_socket.receive(incoming, packet_data_size);
 
         if (data_length.val != 0) {
-            _decompress_packet(incoming, data_length.val, packet_length.val - data_length.length(), intermediate_buffer);
+            _decompress_packet(incoming, data_length.val, packet_data_size, intermediate_buffer);
+            let::network::encoder::write(data, let::var_int(data_length.val));
+            auto packet_data = intermediate_buffer.next_bytes(intermediate_buffer.size());
+            data.write_bytes(packet_data.data(), packet_data.size());
         } else {
             let::network::encoder::write(data, let::var_int(packet_data_size));
             auto packet_data = incoming.next_bytes(packet_data_size);
@@ -219,7 +229,7 @@ let::var_int let::network::game::_read_var_int() {
     uint8_t read;
     do {
         read       = static_cast<uint8_t>(_server_socket.read_byte());
-        long val = (read & 0b01111111);
+        int val = (read & 0b01111111);
         result |= (val << (7 * numRead));
 
         numRead++;

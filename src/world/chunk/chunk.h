@@ -13,12 +13,6 @@ namespace let {
 
         chunk_section() = default;
 
-        chunk_section(const chunk_section &) = delete;
-        chunk_section(chunk_section &&) = delete;
-
-        chunk_section& operator =(const chunk_section &) = delete;
-        chunk_section& operator =(chunk_section &&) = delete;
-
         std::array<std::uint16_t, 16 * 16 * 16> blocks;
     };
 
@@ -29,6 +23,10 @@ namespace let {
         void _ensure_chunk(std::uint8_t y);
 
     public:
+        [[nodiscard]] static std::uint64_t key(const chunk &chunk) noexcept;
+
+        [[nodiscard]] static std::uint64_t key(std::int32_t x, std::int32_t z) noexcept;
+
         const std::int32_t x;
         const std::int32_t z;
 
@@ -39,6 +37,6 @@ namespace let {
 
         [[nodiscard]] chunk_section *operator[](size_t y) noexcept;
         [[nodiscard]] const chunk_section *operator[](size_t y) const noexcept;
-
+        [[nodiscard]] std::unique_ptr<chunk_section> &section_at(size_t y);
     };
 }

@@ -1,9 +1,11 @@
 #include "game.h"
 
+#include <bridge/render_data.h>
+
 let::game::game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer,
-                let::network::query *server_querier, let::renderer *renderer, let::world *world)
+                let::network::query *server_querier, let::renderer *renderer)
         : _game_network(game_network), _window(window), _ui_renderer(ui_renderer), _server_querier(server_querier),
-          _renderer(renderer), _current_resolution(window->resolution()), _world(world) {
+          _renderer(renderer), _current_resolution(window->resolution()) {
     ZoneScopedN("game::constructor");
     _initialize_menus();
     _create_gpu_resources();
@@ -14,48 +16,12 @@ void let::game::start() {
 
     _running = true;
 
+    auto timer = let::timer();
+
     while (!_window->should_close() && _running) {
-        if (_game_network->status() == network::game::connection_status::connected ||
-            _game_network->status() == network::game::connection_status::connecting) {
-            _game_network->_process();
-
-            if (_game_network->status() == network::game::connection_status::connected) {
-                static auto out_going = let::network::byte_buffer();
-                auto incoming = _game_network->incoming();
-                _world->process_packets(incoming, out_going);
-                _game_network->send_data(out_going);
-            }
-
-        } else {
-            auto target_server = _server_to_join;
-
-            if (!target_server.empty()) {
-                spdlog::info("Attempting to join: {}", target_server);
-
-                // Todo: Custom ports
-                _game_network->connect(target_server, 25565);
-
-                _server_to_join.clear();
-            }
-        }
-
-        const auto mouse = _window->mouse();
-        const auto keyboard = _window->keyboard();
-
-        _ui_renderer->update({
-                                     .mouse = mouse,
-                                     .keyboard= keyboard
-                             });
-
-        _ui_renderer->render();
-        _ui_renderer->read_into(_gpu.texture.target);
-
-        _gpu.texture.render_target = _renderer->render();
-
-        _window->display_frame({
-            .gui = _gpu.texture.target,
-            .rendered = _gpu.texture.render_target
-        });
+        timer.frame_start();
+        _tick(timer.since_last_frame());
+        timer.frame_end();
     }
 }
 
@@ -131,7 +97,7 @@ void let::game::_initialize_menus() {
 }
 
 void let::game::_create_gpu_resources() {
-    ZoneScopedN("window::create_gpu_resources");
+    ZoneScopedN("game::create_gpu_resources");
     glGenTextures(1, &_gpu.texture.target);
     glBindTexture(GL_TEXTURE_2D, _gpu.texture.target);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -142,8 +108,99 @@ void let::game::_create_gpu_resources() {
                  nullptr);
 }
 
-void let::game::_world_tick() {
+void let::game::_tick(double dt) {
+    ZoneScopedN("game::tick");
+    if (_game_network->status() == network::game::connection_status::connected ||
+        _game_network->status() == network::game::connection_status::connecting) {
+        _game_network->_process();
 
+        if (_game_network->status() == network::game::connection_status::connected) {
+            if (!_world.has_value())
+                _world = let::world();
+
+            static auto out_going = let::network::byte_buffer();
+            auto incoming = _game_network->incoming();
+            _world->process_packets(incoming, out_going);
+            _game_network->send_data(out_going);
+        }
+
+    } else {
+        auto target_server = _server_to_join;
+
+        if (!target_server.empty()) {
+            spdlog::info("Attempting to join: {}", target_server);
+
+            // Todo: Custom ports
+            _game_network->connect(target_server, 25565);
+
+            _server_to_join.clear();
+        }
+    }
+
+    const auto mouse = _window->mouse();
+    const auto keyboard = _window->keyboard();
+
+    _ui_renderer->update({
+                                 .mouse = mouse,
+                                 .keyboard= keyboard
+                         });
+
+    if (_world.has_value()) {
+        _window->mouse().hide();
+
+        constexpr auto speed = 5.0f;
+
+        auto movement_direction = glm::vec3();
+
+        if (keyboard.is_key_down(logical::keyboard::key_code::key_w))
+            movement_direction.z += -1;
+
+        if (keyboard.is_key_down(logical::keyboard::key_code::key_s))
+            movement_direction.z += 1;
+
+        if (keyboard.is_key_down(logical::keyboard::key_code::key_a))
+            movement_direction.x += -1;
+
+        if (keyboard.is_key_down(logical::keyboard::key_code::key_d))
+            movement_direction.x += 1;
+
+        if (keyboard.is_key_down(logical::keyboard::key_code::key_left_shift))
+            movement_direction.y += -1;
+
+        if (keyboard.is_key_down(logical::keyboard::key_code::space))
+            movement_direction.y += 1;
+
+        // calculate mouse movement
+        const auto pos = _window->mouse().position();
+        const auto delta = pos - _previous_mouse_pos;
+        _previous_mouse_pos = pos;
+
+        _rotation.x += delta.y * 0.0001;
+        _rotation.y += delta.x * 0.0001;
+
+        const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
+        // Todo: move this logic of moving into the world
+        _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.01);
+
+        const auto render_data = let::bridge::render_data(_world.value());
+
+        _gpu.texture.render_target = _renderer->render({
+                                                               .offset = _world_pos + (_world->world_pos() / 16.0f),
+                                                               .rotation = rotation,
+                                                               .vertices = render_data.vertices(),
+                                                               .indices = render_data.indices()
+                                                       });
+    } else {
+        _window->mouse().show();
+        _ui_renderer->render();
+        _ui_renderer->read_into(_gpu.texture.target);
+    }
+
+    _window->display_frame({
+                                   .gui = _gpu.texture.target,
+                                   .rendered = _gpu.texture.render_target,
+                                   .has_world = _world.has_value()
+                           });
 }
 
 let::game_builder &let::game_builder::with_network(let::network::game &game_network) {
@@ -171,11 +228,6 @@ let::game_builder &let::game_builder::with_renderer(let::renderer &renderer) {
     return *this;
 }
 
-let::game_builder &let::game_builder::with_world(let::world &world) {
-    _world = &world;
-    return *this;
-}
-
 let::game let::game_builder::build() const {
-    return let::game(_game_network, _window, _ui_renderer, _server_querier, _renderer, _world);
+    return let::game(_game_network, _window, _ui_renderer, _server_querier, _renderer);
 }

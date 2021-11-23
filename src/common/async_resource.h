@@ -10,7 +10,6 @@ namespace let
 {
     class task_executor;
 
-
     template <typename T>
     class async_resource {
     public:

@@ -182,12 +182,12 @@ void let::user_input_renderer::update(const update_context &update_ctx) {
 }
 
 void let::user_input_renderer::render() {
-    ZoneScopedN("window::display_frame");
+    ZoneScopedN("ui::render");
     _renderer->get().Render();
 }
 
 void let::user_input_renderer::read_into(std::uint32_t texture) {
-    ZoneScopedN("window::display_frame");
+    ZoneScopedN("ui::read_into");
     if (_current_screen == nullptr)
         throw read_into_exception();
 
@@ -206,7 +206,7 @@ void let::user_input_renderer::read_into(std::uint32_t texture) {
                  width,
                  height,
                  0,
-                 GL_BGRA,
+                 GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  pixels);
 

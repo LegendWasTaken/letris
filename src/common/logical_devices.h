@@ -156,6 +156,8 @@ namespace let::logical {
 
         [[nodiscard]] bool is_key_down(key_code key) const noexcept;
 
+        [[nodiscard]] bool is_key_pressed(key_code key) const noexcept;
+
         [[nodiscard]] bool is_key_up(key_code key) const noexcept;
 
         [[nodiscard]] bool is_key_held(key_code key) const noexcept;
@@ -181,6 +183,12 @@ namespace let::logical {
 
         void set_position(const glm::ivec2 &pos);
 
+        void hide();
+
+        void show();
+
+        [[nodiscard]] bool hidden() const noexcept;
+
         [[nodiscard]] std::array<button_state, 3> &buttons();
 
         [[nodiscard]] button_state state_of(button target) const noexcept;
@@ -189,6 +197,8 @@ namespace let::logical {
 
     private:
         std::array<button_state, 3> _buttons;
+
+        bool _hidden = false;
 
         glm::ivec2 _position;
     };

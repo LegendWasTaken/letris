@@ -1,5 +1,23 @@
 #include "window.h"
 
+namespace
+{
+    void GLAPIENTRY
+    MessageCallback( GLenum source,
+                     GLenum type,
+                     GLuint id,
+                     GLenum severity,
+                     GLsizei length,
+                     const GLchar* message,
+                     const void* userParam )
+    {
+        if (severity != 0x826b)
+        fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                 ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+                 type, severity, message );
+    }
+}
+
 let::window_init::window_init() {
 }
 
@@ -10,10 +28,17 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
     // Todo: Figure out how to move this out and make it static, problem is gladLoad must be after make context current...
     glfwInit();
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+
     _window = glfwCreateWindow(_width, _height, title.c_str(), nullptr, nullptr);
 
     glfwMakeContextCurrent(_window);
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
 
     glfwSetWindowUserPointer(_window, this);
 
@@ -27,17 +52,22 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
 }
 
 bool let::window::should_close() const noexcept {
-    ZoneScopedN("window::should_close");
     return glfwWindowShouldClose(_window);
 }
 
 let::logical::mouse let::window::mouse() const noexcept {
-    ZoneScopedN("window::mouse");
     return _mouse;
 }
 
 let::logical::keyboard let::window::keyboard() const noexcept {
-    ZoneScopedN("window::keyboard");
+    return _keyboard;
+}
+
+let::logical::mouse &let::window::mouse() noexcept {
+    return _mouse;
+}
+
+let::logical::keyboard &let::window::keyboard() noexcept {
     return _keyboard;
 }
 
@@ -48,12 +78,13 @@ glm::ivec2 let::window::resolution() const noexcept {
 
 void let::window::display_frame(let::window::render_targets targets) {
     ZoneScopedN("window::display_frame");
-    glfwMakeContextCurrent(_window);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     _opengl_manager->bind(_fullscreen_program);
+    _opengl_manager->uniform("has_world", targets.has_world);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, targets.gui);
@@ -63,6 +94,9 @@ void let::window::display_frame(let::window::render_targets targets) {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glfwSwapBuffers(_window);
+
+    glfwSetInputMode(_window, GLFW_CURSOR, _mouse.hidden() ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+
     glfwPollEvents();
 }
 

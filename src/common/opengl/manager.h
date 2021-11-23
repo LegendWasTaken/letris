@@ -9,6 +9,7 @@
 #include <initializer_list>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
@@ -31,15 +32,21 @@ namespace let::opengl {
 
         void uniform(const std::string &name, float value);
 
+        void uniform(const std::string &name, glm::vec2 value);
+
         void uniform(const std::string &name, glm::vec3 value);
 
         void uniform(const std::string &name, glm::vec4 value);
 
         void uniform(const std::string &name, int value);
 
+        void uniform(const std::string &name, glm::ivec2 value);
+
         void uniform(const std::string &name, glm::ivec3 value);
 
         void uniform(const std::string &name, glm::ivec4 value);
+
+        void uniform(const std::string &name, glm::mat4 value);
 
     private:
         [[nodiscard]] std::int32_t _uniform_location(const std::string &name);

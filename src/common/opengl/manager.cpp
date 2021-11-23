@@ -103,6 +103,10 @@ void let::opengl::manager::uniform(const std::string &name, float value) {
     glUniform1f(_uniform_location(name), value);
 }
 
+void let::opengl::manager::uniform(const std::string &name, glm::vec2 value) {
+    glUniform2f(_uniform_location(name), value.x, value.y);
+}
+
 void let::opengl::manager::uniform(const std::string &name, glm::vec3 value) {
     glUniform3f(_uniform_location(name), value.x, value.y, value.z);
 }
@@ -115,12 +119,20 @@ void let::opengl::manager::uniform(const std::string &name, int value) {
     glUniform1i(_uniform_location(name), value);
 }
 
+void let::opengl::manager::uniform(const std::string &name, glm::ivec2 value) {
+    glUniform2i(_uniform_location(name), value.x, value.y);
+}
+
 void let::opengl::manager::uniform(const std::string &name, glm::ivec3 value) {
     glUniform3i(_uniform_location(name), value.x, value.y, value.z);
 }
 
 void let::opengl::manager::uniform(const std::string &name, glm::ivec4 value) {
     glUniform4i(_uniform_location(name), value.x, value.y, value.z, value.w);
+}
+
+void let::opengl::manager::uniform(const std::string &name, glm::mat4 value) {
+    glUniformMatrix4fv(_uniform_location(name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 std::int32_t let::opengl::manager::_uniform_location(const std::string &name) {
