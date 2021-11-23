@@ -57,15 +57,18 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
     {
         glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         glBindVertexArray(_tri.vao);
         glBindBuffer(GL_ARRAY_BUFFER, _tri.vbo);
 
         glBufferData(GL_ARRAY_BUFFER, data.vertices.size_bytes(), data.vertices.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<const void *>(3 * sizeof(float)));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), nullptr);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), reinterpret_cast<const void *>(3 * sizeof(float)));
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), reinterpret_cast<const void *>(6 * sizeof(float)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size_bytes(), data.indices.data(), GL_STATIC_DRAW);

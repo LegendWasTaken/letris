@@ -12,10 +12,17 @@ namespace let {
     public:
         explicit renderer(std::uint16_t width, std::uint16_t  height, let::opengl::manager *gl_manager);
 
+        struct vertex
+        {
+            glm::vec3 pos;
+            glm::vec3 col;
+            glm::vec3 normal;
+        };
+
         struct render_data {
             glm::vec3 offset;
             glm::mat4 rotation;
-            std::span<const glm::vec3> vertices;
+            std::span<const vertex> vertices;
             std::span<const std::uint32_t> indices;
         };
 
