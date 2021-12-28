@@ -16,7 +16,7 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
 
     glBindTexture(GL_TEXTURE_2D, _framebuffer.texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _resolution.x, _resolution.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _resolution.x, _resolution.y, 0, GL_RGBA, GL_FLOAT, nullptr);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _framebuffer.texture, 0);
     glBindRenderbuffer(GL_RENDERBUFFER, _framebuffer.rbo);
@@ -30,6 +30,10 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
     _triangle_program = _gl_manager->create_program({
         "shaders/triangle/shader.frag",
         "shaders/triangle/shader.vert"
+    });
+
+    _post_processing_programs.sky = _gl_manager->create_program({
+        "shaders/post/sky/shader.comp"
     });
 
     auto vertices = std::array<float, 9>({
@@ -53,27 +57,30 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
 
 std::uint32_t let::renderer::render(const renderer::render_data &data) {
     ZoneScopedN("renderer::render");
-    if (!data.vertices.empty())
-    {
+//    if (!data.vertices.empty())
+//    {
         glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
+//        glEnable(GL_CULL_FACE);
 
-        glBindVertexArray(_tri.vao);
-        glBindBuffer(GL_ARRAY_BUFFER, _tri.vbo);
+//        glBindVertexArray(_tri.vao);
+//        glBindBuffer(GL_ARRAY_BUFFER, _tri.vbo);
 
-        glBufferData(GL_ARRAY_BUFFER, data.vertices.size_bytes(), data.vertices.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), nullptr);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), reinterpret_cast<const void *>(3 * sizeof(float)));
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), reinterpret_cast<const void *>(6 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
+//        glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), nullptr, GL_STATIC_DRAW);
+//        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+//        glEnableVertexAttribArray(0);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size_bytes(), data.indices.data(), GL_STATIC_DRAW);
+//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
+//        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(uint32_t), nullptr, GL_STATIC_DRAW);
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _tri.vao);
+//        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _tri.ebo);
+//        glEnableVertexAttribArray(1);
+//        glEnableVertexAttribArray(2);
+//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
+//        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size_bytes(), data.indices.data(), GL_STATIC_DRAW);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         const auto model = glm::mat4(1.0f);
@@ -85,11 +92,29 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
 
         _gl_manager->bind(_triangle_program);
         _gl_manager->uniform("mvp", mvp);
-        glBindVertexArray(_tri.vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
-        glDrawElements(GL_TRIANGLES, data.indices.size(), GL_UNSIGNED_INT, nullptr);
+//        glBindVertexArray(_tri.vao);
+//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _tri.ebo);
+        glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_INT, nullptr);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
+
+        // Apply post processing
+        _gl_manager->bind(_post_processing_programs.sky);
+
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(data.rotation, scale, rotation, translation, skew, perspective);
+        auto rotations = glm::vec2(glm::eulerAngles(rotation));
+
+        _gl_manager->uniform("rotation", rotations);
+
+        glDispatchCompute(glm::ceil(1920.0 / 32.0), glm::ceil(1080.0 / 32.0), 1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindImageTexture(0, _framebuffer.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+//    }
 
     return _framebuffer.texture;
 }

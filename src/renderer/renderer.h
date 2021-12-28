@@ -6,6 +6,7 @@
 #include <common/exception.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace let {
     class renderer {
@@ -22,8 +23,8 @@ namespace let {
         struct render_data {
             glm::vec3 offset;
             glm::mat4 rotation;
-            std::span<const vertex> vertices;
-            std::span<const std::uint32_t> indices;
+//            std::span<const vertex> vertices;
+//            std::span<const std::uint32_t> indices;
         };
 
         [[nodiscard]] std::uint32_t render(const render_data &data);
@@ -43,6 +44,10 @@ namespace let {
         } _tri;
 
         std::uint32_t _triangle_program;
+
+        struct {
+            std::uint32_t sky;
+        } _post_processing_programs;
 
         glm::ivec2 _resolution;
 

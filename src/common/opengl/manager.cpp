@@ -2,11 +2,11 @@
 
 std::uint64_t let::opengl::manager::create_program(const std::initializer_list<std::string> &shaders) {
     ZoneScopedN("opengl::create_program");
-    if (shaders.size() > 2)
+    if (shaders.size() > 4)
         LET_EXCEPTION(exception::source_type::opengl, "Attempted to create a program with {} shaders, max is 4",
                       shaders.size());
 
-    // Max 2 shaders per program
+    // Max 4 shaders per program
     auto compiled_shaders = std::array<std::optional<std::uint32_t>, 4>();
 
     for (int i = 0; i < shaders.size(); i++)
@@ -117,6 +117,10 @@ void let::opengl::manager::uniform(const std::string &name, glm::vec4 value) {
 
 void let::opengl::manager::uniform(const std::string &name, int value) {
     glUniform1i(_uniform_location(name), value);
+}
+
+void let::opengl::manager::uniform(const std::string &name, uint32_t value) {
+    glUniform1ui(_uniform_location(name), value);
 }
 
 void let::opengl::manager::uniform(const std::string &name, glm::ivec2 value) {

@@ -97,7 +97,6 @@
 
             const servers = JSON.parse(CPP_ServerData());
             servers.forEach(server => {
-                // Text Div
                 let text = document.createElement("div");
                 text.classList.add("row-item", "server-text");
                 text.innerText = `${server["description"]}`;

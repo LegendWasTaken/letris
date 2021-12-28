@@ -4,14 +4,6 @@
 
 #include "chunk.h"
 
-std::uint16_t let::chunk_section::get_block(std::int32_t x, std::int32_t y, std::int32_t z) const noexcept {
-    return blocks[(y & 0xF) << 8 | (z & 0xF) << 4 | (x & 0xF)];
-}
-
-void let::chunk_section::set_block(std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t block) noexcept {
-    blocks[(y << 8) | (z << 4) | x] = block;
-}
-
 void let::chunk::_ensure_chunk(std::uint8_t y) {
     sections[y] = std::make_unique<chunk_section>();
 }
@@ -19,17 +11,6 @@ void let::chunk::_ensure_chunk(std::uint8_t y) {
 let::chunk::chunk(std::int32_t x, std::int32_t z) : x(x), z(z) {
     for (auto &ptr : sections)
         ptr = nullptr;
-}
-
-std::uint16_t let::chunk::get_block(std::int32_t x, std::int32_t y, std::int32_t z) const noexcept {
-    if (auto &ptr = sections[y >> 4]; ptr != nullptr)
-        return ptr->get_block(x & 0xF, y & 0xF, z & 0xF);
-    return 0; // Replace to air once i get all of that sorted
-}
-
-void let::chunk::set_block(std::int32_t x, std::int32_t y, std::int32_t z, std::uint16_t block) noexcept {
-    _ensure_chunk(y >> 4);
-    sections[y >> 4]->set_block(x & 0xF, y & 0xF, z & 0xF, block);
 }
 
 let::chunk_section *let::chunk::operator[](size_t y) noexcept {
@@ -54,4 +35,15 @@ std::uint64_t let::chunk::key(std::int32_t x, std::int32_t z) noexcept {
     return
             ((static_cast<std::uint64_t>(x) << 32) & 0xFFFFFFFF00000000) |
             ((static_cast<std::uint64_t>(z) <<  0) & 0x00000000FFFFFFFF);
+}
+
+size_t let::chunk::visible_faces() const noexcept {
+    auto faces = size_t(0);
+    for (const auto &section : sections)
+        for (auto block : section->blocks)
+            for (int i = 0; i < 6; i++)
+            {
+                faces += block.visible(static_cast<block::face>(i));
+            }
+    return faces;
 }

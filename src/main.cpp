@@ -8,7 +8,6 @@ int main() {
     let::ultralight_init ultralightInit {};
 
     try {
-        // Hey, just don't write any bugs
         spdlog::set_level(spdlog::level::debug);
         spdlog::info("Starting");
 

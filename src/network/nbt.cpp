@@ -42,7 +42,7 @@ let::nbt::node::_read_node(let::network::byte_buffer &buffer, tag_type parent, t
         value._name = ::read_string(buffer);
     } else if (parent == tag_type::LIST) {
         value._type = list_type;
-    } else if (parent == tag_type::COMPOUND) {
+    } else {
         value._type = ::read_type(buffer);
         if (value._type == tag_type::END) return value;
 

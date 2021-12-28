@@ -40,6 +40,8 @@ namespace let::opengl {
 
         void uniform(const std::string &name, int value);
 
+        void uniform(const std::string &name, uint32_t value);
+
         void uniform(const std::string &name, glm::ivec2 value);
 
         void uniform(const std::string &name, glm::ivec3 value);

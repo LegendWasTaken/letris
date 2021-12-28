@@ -14,6 +14,8 @@
 #include <common/timer.h>
 #include <common/thread/locked_resource.h>
 
+#include <bridge/render_data.h>
+
 #include <glm/gtx/euler_angles.hpp>
 
 namespace let {
@@ -31,6 +33,8 @@ namespace let {
         let::network::query *_server_querier;
         let::renderer *_renderer;
         std::optional<let::world> _world;
+
+        let::bridge::render_data_cache _render_cache;
 
         bool _running;
 

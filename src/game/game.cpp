@@ -182,13 +182,13 @@ void let::game::_tick(double dt) {
         // Todo: move this logic of moving into the world
         _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.04);
 
-        const auto render_data = let::bridge::render_data(_world.value());
+        const auto render_data = let::bridge::render_data(_world.value(), _render_cache);
 
         _gpu.texture.render_target = _renderer->render({
-                                                               .offset = _world_pos + _world->world_pos(),
+                                                               .offset = _world_pos,
                                                                .rotation = rotation,
-                                                               .vertices = render_data.vertices(),
-                                                               .indices = render_data.indices()
+//                                                               .vertices = render_data.vertices(),
+//                                                               .indices = render_data.indices()
                                                        });
     } else {
         _window->mouse().show();

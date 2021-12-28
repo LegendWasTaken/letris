@@ -4,39 +4,47 @@
 #include <span>
 #include <bitset>
 #include <random>
+#include <unordered_map>
 
 #include <world/world.h>
+#include <world/chunk/chunk.h>
 
 #include <renderer/renderer.h>
 
 #include <tracy/Tracy.hpp>
 
 namespace let::bridge {
-    class render_data {
+
+    class render_data;
+
+    class render_data_cache {
     public:
 
-        explicit render_data(const let::world &world);
+        struct data
+        {
+            std::vector<GLuint> vertices;
+            std::vector<GLuint> indices;
+        };
 
-        [[nodiscard]] std::span<const renderer::vertex> vertices() const noexcept;
+        explicit render_data_cache(opengl::manager *gl_manager);
 
-        [[nodiscard]] std::span<const std::uint32_t> indices() const noexcept;
+        [[nodiscard]]
+        std::optional<data> cached_chunk(uint64_t key) const noexcept;
 
     private:
 
-        enum class block_face
-        {
-            north,
-            east,
-            south,
-            west,
-            top,
-            bottom,
-        };
+        friend render_data;
 
-        void _add_face(glm::ivec2 chunk, glm::ivec3 block_pos, block_face face);
+        std::uint32_t _meshing_program;
 
-        std::vector<renderer::vertex> _vertices;
-        std::vector<std::uint32_t> _indices;
+        std::unordered_map<uint64_t, data> _chunks;
+
+        let::opengl::manager *_gl_manager;
+    };
+
+    class render_data {
+    public:
+        explicit render_data(const let::world &world, render_data_cache &cache);
     };
 }
 

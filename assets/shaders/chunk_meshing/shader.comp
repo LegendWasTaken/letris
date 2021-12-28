@@ -1,0 +1,180 @@
+#version 460
+
+layout(std430, binding = 0) buffer data_buffer {
+    float vertices[8][3];
+};
+
+layout(std430, binding = 1) buffer indices_buffer {
+    uint indices[12];
+};
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+uniform uint block;
+
+#define ITXX 0
+#define ITXY 1
+#define ITYX 2
+#define ITYY 3
+#define IBXX 4
+#define IBXY 5
+#define IBYX 6
+#define IBYY 7
+
+#define FD 0
+#define FT 1
+#define FR 2
+#define FL 3
+#define FF 4
+#define FB 5
+
+vec3 CVS[8] = {
+    vec3(0, 1, 0),
+    vec3(0, 1, 1),
+    vec3(1, 1, 0),
+    vec3(1, 1, 1),
+    vec3(0, 0, 0),
+    vec3(0, 0, 1),
+    vec3(1, 0, 0),
+    vec3(1, 0, 1),
+};
+
+uint cube_verts_size = 0;
+vec3 cube_verts[8] = {
+    vec3(0),
+    vec3(0),
+    vec3(0),
+    vec3(0),
+    vec3(0),
+    vec3(0),
+    vec3(0),
+    vec3(0),
+};
+
+uint cube_indices_size = 0;
+int cube_indices[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+int IDX_LUT[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+
+void insert_vertex(uint vert_type) {
+    if (IDX_LUT[vert_type] == -1)
+    {
+        IDX_LUT[vert_type] = int(cube_verts_size);
+        vec3 vert = CVS[vert_type];
+        cube_verts[cube_verts_size++] = vert;
+    }
+}
+
+void insert_index(uint index) {
+    cube_indices[cube_indices_size++] = IDX_LUT[index];
+}
+
+void main() {
+    bool faces[6];
+    faces[FF] = bool(block & uint(0x8000));
+    faces[FB] = bool(block & uint(0x4000));
+    faces[FL] = bool(block & uint(0x2000));
+    faces[FR] = bool(block & uint(0x1000));
+    faces[FT] = bool(block & uint(0x800));
+    faces[FD] = bool(block & uint(0x400));
+
+    if (faces[FD]) {
+        insert_vertex(IBXX);
+        insert_vertex(IBXY);
+        insert_vertex(IBYX);
+        insert_vertex(IBYY);
+
+        insert_index(IBXY);
+        insert_index(IBXX);
+        insert_index(IBYX);
+
+        insert_index(IBYY);
+        insert_index(IBXY);
+        insert_index(IBYX);
+    }
+
+    if (faces[FT]) {
+        insert_vertex(ITXX);
+        insert_vertex(ITXY);
+        insert_vertex(ITYX);
+        insert_vertex(ITYY);
+
+        insert_index(ITXX);
+        insert_index(ITXY);
+        insert_index(ITYX);
+
+        insert_index(ITXY);
+        insert_index(ITYY);
+        insert_index(ITYX);
+    }
+
+    if (faces[FR]) {
+        insert_vertex(ITXY);
+        insert_vertex(ITYY);
+        insert_vertex(IBXY);
+        insert_vertex(IBYY);
+
+        insert_index(ITYY);
+        insert_index(ITXY);
+        insert_index(IBXY);
+
+        insert_index(IBYY);
+        insert_index(ITYY);
+        insert_index(IBXY);
+    }
+
+    if (faces[FL]) {
+        insert_vertex(ITXX);
+        insert_vertex(ITYX);
+        insert_vertex(IBXX);
+        insert_vertex(IBYX);
+
+        insert_index(ITXX);
+        insert_index(ITYX);
+        insert_index(IBXX);
+
+        insert_index(ITYX);
+        insert_index(IBYX);
+        insert_index(IBXX);
+    }
+
+    if (faces[FF]) {
+        insert_vertex(ITYX);
+        insert_vertex(ITYY);
+        insert_vertex(IBYX);
+        insert_vertex(IBYY);
+
+        insert_index(ITYX);
+        insert_index(ITYY);
+        insert_index(IBYX);
+
+        insert_index(ITYY);
+        insert_index(IBYY);
+        insert_index(IBYX);
+    }
+
+    if (faces[FB]) {
+        insert_vertex(ITXX);
+        insert_vertex(ITXY);
+        insert_vertex(IBXX);
+        insert_vertex(IBXY);
+
+        insert_index(ITXY);
+        insert_index(ITXX);
+        insert_index(IBXX);
+
+        insert_index(IBXY);
+        insert_index(ITXY);
+        insert_index(IBXX);
+    }
+
+    for (int i = 0; i < cube_verts_size; i++)
+    {
+        vertices[i][0] = cube_verts[i].x;
+        vertices[i][1] = cube_verts[i].y;
+        vertices[i][2] = cube_verts[i].z;
+    }
+
+    for (int i = 0; i < cube_indices_size; i++)
+        indices[i] = cube_indices[i];
+}
