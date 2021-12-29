@@ -176,7 +176,7 @@ void let::game::_tick(double dt) {
         _previous_mouse_pos = pos;
 
         _rotation.x += delta.y * 0.0004;
-        _rotation.y += delta.x *- 0.0004;
+        _rotation.y += delta.x * 0.0004;
 
         const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
         // Todo: move this logic of moving into the world
@@ -189,7 +189,8 @@ void let::game::_tick(double dt) {
                                                                .offset = _world_pos,
                                                                .rotation = rotation,
                                                                .vertices = chunk_data.vertices,
-                                                               .indices = chunk_data.indices
+                                                               .indices = chunk_data.indices,
+                                                               .indirects = chunk_data.indirects
                                                        });
     } else {
         _window->mouse().show();

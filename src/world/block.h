@@ -55,6 +55,10 @@ namespace let {
             _data |= FACE_MASKS[static_cast<int32_t>(block_face)];
         }
 
+        void set_unvisible(face block_face) noexcept {
+            _data &= ~FACE_MASKS[static_cast<int32_t>(block_face)];
+        }
+
         [[nodiscard]]
         bool visible(face block_face) const noexcept {
             return _data & FACE_MASKS[static_cast<int32_t>(block_face)];

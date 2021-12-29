@@ -1,16 +1,33 @@
 #version 460
 
+struct Vertex
+{
+    vec3 pos;
+    vec3 normal;
+
+};
+
 layout(std430, binding = 0) buffer data_buffer {
-    float vertices[8][3];
+    float vertices[16][3];
 };
 
 layout(std430, binding = 1) buffer indices_buffer {
-    uint indices[12];
+    uint indices[72];
 };
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (std430, binding = 2) buffer counter_buffer {
+    uint count;
+    uint instanceCount;
+    uint FirstIndex;
+    int baseIndex;
+    uint reservedMustBeZero;
+    uint vertex_count;
+};
 
-uniform uint block;
+layout(local_size_x = 2, local_size_y = 1, local_size_z = 1) in;
+
+uniform uint block1;
+uniform uint block2;
 
 #define ITXX 0
 #define ITXY 1
@@ -70,6 +87,8 @@ void insert_index(uint index) {
 }
 
 void main() {
+    uint block = gl_LocalInvocationID.x == 0 ? block1 : block2;
+
     bool faces[6];
     faces[FF] = bool(block & uint(0x8000));
     faces[FB] = bool(block & uint(0x4000));
@@ -168,13 +187,18 @@ void main() {
         insert_index(IBXX);
     }
 
+
+    uint current_vertex_size = atomicAdd(vertex_count, cube_verts_size);
     for (int i = 0; i < cube_verts_size; i++)
     {
-        vertices[i][0] = cube_verts[i].x;
-        vertices[i][1] = cube_verts[i].y;
-        vertices[i][2] = cube_verts[i].z;
+        vertices[i + current_vertex_size][0] = cube_verts[i].x + gl_LocalInvocationID.x;
+        vertices[i + current_vertex_size][1] = cube_verts[i].y;
+        vertices[i + current_vertex_size][2] = cube_verts[i].z;
     }
 
+    uint current_index = atomicAdd(count, cube_indices_size);
     for (int i = 0; i < cube_indices_size; i++)
-        indices[i] = cube_indices[i];
+    {
+        indices[i + current_index] = cube_indices[i] + current_vertex_size;
+    }
 }

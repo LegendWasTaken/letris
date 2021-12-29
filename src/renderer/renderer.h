@@ -25,6 +25,7 @@ namespace let {
             glm::mat4 rotation;
             std::span<GLuint> vertices;
             std::span<GLuint> indices;
+            std::span<GLuint> indirects;
         };
 
         [[nodiscard]] std::uint32_t render(const render_data &data);

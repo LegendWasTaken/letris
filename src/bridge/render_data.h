@@ -24,6 +24,7 @@ namespace let::bridge {
             GLuint vao;
             GLuint vbo;
             GLuint ebo;
+            GLuint indirect;
         };
 
         explicit render_data_cache(opengl::manager *gl_manager);
@@ -49,6 +50,7 @@ namespace let::bridge {
         {
             std::vector<GLuint> vertices;
             std::vector<GLuint> indices;
+            std::vector<GLuint> indirects;
         };
         [[nodiscard]] chunk_data data();
 

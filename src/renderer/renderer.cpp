@@ -84,8 +84,9 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
         {
             glBindVertexArray(data.vertices[i]);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.indices[i]);
+            glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i]);
 
-            glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+            glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
