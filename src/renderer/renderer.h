@@ -23,8 +23,8 @@ namespace let {
         struct render_data {
             glm::vec3 offset;
             glm::mat4 rotation;
-//            std::span<const vertex> vertices;
-//            std::span<const std::uint32_t> indices;
+            std::span<GLuint> vertices;
+            std::span<GLuint> indices;
         };
 
         [[nodiscard]] std::uint32_t render(const render_data &data);
@@ -47,6 +47,7 @@ namespace let {
 
         struct {
             std::uint32_t sky;
+            std::uint32_t tonemap;
         } _post_processing_programs;
 
         glm::ivec2 _resolution;

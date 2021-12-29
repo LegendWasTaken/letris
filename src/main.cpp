@@ -20,12 +20,15 @@ int main() {
         auto server_querier = let::network::query();
         auto renderer = let::renderer(1920, 1080, &opengl_manager);
 
+        auto render_cache = let::bridge::render_data_cache(&opengl_manager);
+
         auto game = let::game_builder()
                 .with_network(game_network)
                 .with_window(window)
                 .with_ui_renderer(user_input_renderer)
                 .with_server_querier(server_querier)
                 .with_renderer(renderer)
+                .with_render_cache(render_cache)
                 .build();
 
         game.start();

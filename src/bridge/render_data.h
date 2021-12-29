@@ -19,11 +19,11 @@ namespace let::bridge {
 
     class render_data_cache {
     public:
-
         struct data
         {
-            std::vector<GLuint> vertices;
-            std::vector<GLuint> indices;
+            GLuint vao;
+            GLuint vbo;
+            GLuint ebo;
         };
 
         explicit render_data_cache(opengl::manager *gl_manager);
@@ -32,7 +32,6 @@ namespace let::bridge {
         std::optional<data> cached_chunk(uint64_t key) const noexcept;
 
     private:
-
         friend render_data;
 
         std::uint32_t _meshing_program;
@@ -45,6 +44,17 @@ namespace let::bridge {
     class render_data {
     public:
         explicit render_data(const let::world &world, render_data_cache &cache);
+
+        struct chunk_data
+        {
+            std::vector<GLuint> vertices;
+            std::vector<GLuint> indices;
+        };
+        [[nodiscard]] chunk_data data();
+
+    private:
+        std::unordered_map<uint64_t, render_data_cache::data> _chunks;
+
     };
 }
 

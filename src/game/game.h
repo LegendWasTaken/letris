@@ -24,7 +24,7 @@ namespace let {
         void start();
 
         game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer,
-             let::network::query *server_querier, let::renderer *renderer);
+             let::network::query *server_querier, let::renderer *renderer, let::bridge::render_data_cache *render_data_cache);
 
     private:
         let::network::game *_game_network;
@@ -34,7 +34,7 @@ namespace let {
         let::renderer *_renderer;
         std::optional<let::world> _world;
 
-        let::bridge::render_data_cache _render_cache;
+        let::bridge::render_data_cache *_render_cache;
 
         bool _running;
 
@@ -82,6 +82,8 @@ namespace let {
 
         [[nodiscard]] game_builder &with_renderer(let::renderer &renderer);
 
+        [[nodiscard]] game_builder &with_render_cache(let::bridge::render_data_cache &cache);
+
         [[nodiscard]] let::game build() const;
 
     private:
@@ -94,6 +96,8 @@ namespace let {
         let::network::query *_server_querier = nullptr;
 
         let::renderer *_renderer = nullptr;
+
+        let::bridge::render_data_cache *_render_data_cache = nullptr;
     };
 }
 

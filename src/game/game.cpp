@@ -3,9 +3,9 @@
 #include <bridge/render_data.h>
 
 let::game::game(let::network::game *game_network, let::window *window, let::user_input_renderer *ui_renderer,
-                let::network::query *server_querier, let::renderer *renderer)
+                let::network::query *server_querier, let::renderer *renderer, let::bridge::render_data_cache *render_data_cache)
         : _game_network(game_network), _window(window), _ui_renderer(ui_renderer), _server_querier(server_querier),
-          _renderer(renderer), _current_resolution(window->resolution()) {
+          _renderer(renderer), _current_resolution(window->resolution()), _render_cache(render_data_cache) {
     ZoneScopedN("game::constructor");
     _initialize_menus();
     _create_gpu_resources();
@@ -176,19 +176,20 @@ void let::game::_tick(double dt) {
         _previous_mouse_pos = pos;
 
         _rotation.x += delta.y * 0.0004;
-        _rotation.y += delta.x * 0.0004;
+        _rotation.y += delta.x *- 0.0004;
 
         const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
         // Todo: move this logic of moving into the world
         _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.04);
 
-        const auto render_data = let::bridge::render_data(_world.value(), _render_cache);
+        auto render_data = let::bridge::render_data(_world.value(), *_render_cache);
+        auto chunk_data = render_data.data();
 
         _gpu.texture.render_target = _renderer->render({
                                                                .offset = _world_pos,
                                                                .rotation = rotation,
-//                                                               .vertices = render_data.vertices(),
-//                                                               .indices = render_data.indices()
+                                                               .vertices = chunk_data.vertices,
+                                                               .indices = chunk_data.indices
                                                        });
     } else {
         _window->mouse().show();
@@ -228,6 +229,11 @@ let::game_builder &let::game_builder::with_renderer(let::renderer &renderer) {
     return *this;
 }
 
+let::game_builder &let::game_builder::with_render_cache(let::bridge::render_data_cache &cache) {
+    _render_data_cache = &cache;
+    return *this;
+}
+
 let::game let::game_builder::build() const {
-    return let::game(_game_network, _window, _ui_renderer, _server_querier, _renderer);
+    return let::game(_game_network, _window, _ui_renderer, _server_querier, _renderer, _render_data_cache);
 }
