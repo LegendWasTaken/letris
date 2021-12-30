@@ -1,14 +1,12 @@
 #version 460
 
-struct Vertex
-{
-    vec3 pos;
-    vec3 normal;
-
+struct Vertex {
+    vec4 position;
+    vec4 normal;
 };
 
 layout(std430, binding = 0) buffer data_buffer {
-    float vertices[16][3];
+    Vertex vertices[48];
 };
 
 layout(std430, binding = 1) buffer indices_buffer {
@@ -29,14 +27,14 @@ layout(local_size_x = 2, local_size_y = 1, local_size_z = 1) in;
 uniform uint block1;
 uniform uint block2;
 
-#define ITXX 0
-#define ITXY 1
-#define ITYX 2
-#define ITYY 3
-#define IBXX 4
-#define IBXY 5
-#define IBYX 6
-#define IBYY 7
+#define ITXXV 0
+#define ITXYV 1
+#define ITYXV 2
+#define ITYYV 3
+#define IBXXV 4
+#define IBXYV 5
+#define IBYXV 6
+#define IBYYV 7
 
 #define FD 0
 #define FT 1
@@ -44,6 +42,15 @@ uniform uint block2;
 #define FL 3
 #define FF 4
 #define FB 5
+
+vec3 NORMAL_LUT[6] = {
+    vec3( 0, -1,  0),
+    vec3( 0,  1,  0),
+    vec3( 0,  0,  1),
+    vec3( 0,  0, -1),
+    vec3( 1,  0,  0),
+    vec3(-1,  0,  0),
+};
 
 vec3 CVS[8] = {
     vec3(0, 1, 0),
@@ -57,33 +64,44 @@ vec3 CVS[8] = {
 };
 
 uint cube_verts_size = 0;
-vec3 cube_verts[8] = {
-    vec3(0),
-    vec3(0),
-    vec3(0),
-    vec3(0),
-    vec3(0),
-    vec3(0),
-    vec3(0),
-    vec3(0),
+vec4 cube_verts[24] = {
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
+    vec4(0),
 };
 
 uint cube_indices_size = 0;
-int cube_indices[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint cube_indices[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-int IDX_LUT[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
-
-void insert_vertex(uint vert_type) {
-    if (IDX_LUT[vert_type] == -1)
-    {
-        IDX_LUT[vert_type] = int(cube_verts_size);
-        vec3 vert = CVS[vert_type];
-        cube_verts[cube_verts_size++] = vert;
-    }
+uint insert_vertex(uint vert_type, uint normal) {
+    vec3 vert = CVS[vert_type];
+    cube_verts[cube_verts_size++] = vec4(vert, uintBitsToFloat(normal));
+    return cube_verts_size - 1;
 }
 
 void insert_index(uint index) {
-    cube_indices[cube_indices_size++] = IDX_LUT[index];
+    cube_indices[cube_indices_size++] = index;
 }
 
 void main() {
@@ -98,10 +116,10 @@ void main() {
     faces[FD] = bool(block & uint(0x400));
 
     if (faces[FD]) {
-        insert_vertex(IBXX);
-        insert_vertex(IBXY);
-        insert_vertex(IBYX);
-        insert_vertex(IBYY);
+        uint IBXX = insert_vertex(IBXXV, FD);
+        uint IBXY = insert_vertex(IBXYV, FD);
+        uint IBYX = insert_vertex(IBYXV, FD);
+        uint IBYY = insert_vertex(IBYYV, FD);
 
         insert_index(IBXY);
         insert_index(IBXX);
@@ -113,10 +131,10 @@ void main() {
     }
 
     if (faces[FT]) {
-        insert_vertex(ITXX);
-        insert_vertex(ITXY);
-        insert_vertex(ITYX);
-        insert_vertex(ITYY);
+        uint ITXX = insert_vertex(ITXXV, FT);
+        uint ITXY = insert_vertex(ITXYV, FT);
+        uint ITYX = insert_vertex(ITYXV, FT);
+        uint ITYY = insert_vertex(ITYYV, FT);
 
         insert_index(ITXX);
         insert_index(ITXY);
@@ -128,10 +146,10 @@ void main() {
     }
 
     if (faces[FR]) {
-        insert_vertex(ITXY);
-        insert_vertex(ITYY);
-        insert_vertex(IBXY);
-        insert_vertex(IBYY);
+        uint ITXY = insert_vertex(ITXYV, FR);
+        uint ITYY = insert_vertex(ITYYV, FR);
+        uint IBXY = insert_vertex(IBXYV, FR);
+        uint IBYY = insert_vertex(IBYYV, FR);
 
         insert_index(ITYY);
         insert_index(ITXY);
@@ -143,10 +161,10 @@ void main() {
     }
 
     if (faces[FL]) {
-        insert_vertex(ITXX);
-        insert_vertex(ITYX);
-        insert_vertex(IBXX);
-        insert_vertex(IBYX);
+        uint ITXX = insert_vertex(ITXXV, FL);
+        uint ITYX = insert_vertex(ITYXV, FL);
+        uint IBXX = insert_vertex(IBXXV, FL);
+        uint IBYX = insert_vertex(IBYXV, FL);
 
         insert_index(ITXX);
         insert_index(ITYX);
@@ -158,10 +176,10 @@ void main() {
     }
 
     if (faces[FF]) {
-        insert_vertex(ITYX);
-        insert_vertex(ITYY);
-        insert_vertex(IBYX);
-        insert_vertex(IBYY);
+        uint ITYX = insert_vertex(ITYXV, FF);
+        uint ITYY = insert_vertex(ITYYV, FF);
+        uint IBYX = insert_vertex(IBYXV, FF);
+        uint IBYY = insert_vertex(IBYYV, FF);
 
         insert_index(ITYX);
         insert_index(ITYY);
@@ -173,10 +191,10 @@ void main() {
     }
 
     if (faces[FB]) {
-        insert_vertex(ITXX);
-        insert_vertex(ITXY);
-        insert_vertex(IBXX);
-        insert_vertex(IBXY);
+        uint ITXX = insert_vertex(ITXXV, FB);
+        uint ITXY = insert_vertex(ITXYV, FB);
+        uint IBXX = insert_vertex(IBXXV, FB);
+        uint IBXY = insert_vertex(IBXYV, FB);
 
         insert_index(ITXY);
         insert_index(ITXX);
@@ -191,9 +209,11 @@ void main() {
     uint current_vertex_size = atomicAdd(vertex_count, cube_verts_size);
     for (int i = 0; i < cube_verts_size; i++)
     {
-        vertices[i + current_vertex_size][0] = cube_verts[i].x + gl_LocalInvocationID.x;
-        vertices[i + current_vertex_size][1] = cube_verts[i].y;
-        vertices[i + current_vertex_size][2] = cube_verts[i].z;
+        vec4 vertex = cube_verts[i];
+        vec3 pos = vertex.xyz + gl_LocalInvocationID.xyz;
+        vec3 normal = NORMAL_LUT[floatBitsToUint(vertex.w)];
+        vertices[i + current_vertex_size].position = vec4(pos, 1.0f);
+        vertices[i + current_vertex_size].normal = vec4(normal, 1.0f);
     }
 
     uint current_index = atomicAdd(count, cube_indices_size);

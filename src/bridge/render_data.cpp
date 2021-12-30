@@ -50,9 +50,12 @@ let::bridge::render_data::render_data(const let::world &world, render_data_cache
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        glBufferData(GL_ARRAY_BUFFER, 48 * sizeof(float), nullptr, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        glBufferData(GL_ARRAY_BUFFER, 16 * 8 * sizeof(float), nullptr, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(4 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        glBindVertexArray(0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 72 * sizeof(uint32_t), nullptr, GL_STATIC_DRAW);
