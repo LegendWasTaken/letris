@@ -21,10 +21,11 @@ namespace let::bridge {
     public:
         struct data
         {
-            GLuint vao;
-            GLuint vbo;
-            GLuint ebo;
-            GLuint indirect;
+            glm::ivec2 pos;
+            std::array<std::optional<GLuint>, 16> vao;
+            std::array<std::optional<GLuint>, 16> vbo;
+            std::array<std::optional<GLuint>, 16> ebo;
+            std::array<std::optional<GLuint>, 16> indirect;
         };
 
         explicit render_data_cache(opengl::manager *gl_manager);
@@ -48,9 +49,10 @@ namespace let::bridge {
 
         struct chunk_data
         {
-            std::vector<GLuint> vertices;
-            std::vector<GLuint> indices;
-            std::vector<GLuint> indirects;
+            std::vector<glm::ivec2> positions;
+            std::vector<std::array<std::optional<GLuint>, 16>> vertices;
+            std::vector<std::array<std::optional<GLuint>, 16>> indices;
+            std::vector<std::array<std::optional<GLuint>, 16>> indirects;
         };
         [[nodiscard]] chunk_data data();
 

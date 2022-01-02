@@ -65,30 +65,36 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
 //    {
         glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
         glEnable(GL_DEPTH_TEST);
-//        glEnable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        const auto model = glm::mat4(1.0f);
+        _gl_manager->bind(_triangle_program);
+
         const auto view = glm::translate(glm::mat4(1.0f), -data.offset);
         const auto view_rot = data.rotation * view;
 
-        const auto proj = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100.f);
-        const auto mvp = proj * view_rot * model;
-
-        _gl_manager->bind(_triangle_program);
-        _gl_manager->uniform("mvp", mvp);
+        const auto proj = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100000.f);
 
         for (auto i = 0; i < data.vertices.size(); i++)
         {
-            glBindVertexArray(data.vertices[i]);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.indices[i]);
-            glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i]);
+            for (auto j = 0; j < 16; j++)
+            {
+                if (!data.vertices[i][j].has_value())
+                    continue;
 
-            glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                const auto model = glm::translate(glm::mat4(1.0f), glm::vec3(data.positions[i].x * 16.0f, j * 16.0f, data.positions[i].y * 16.0f));
+                const auto mvp = proj * view_rot * model;
+
+                _gl_manager->uniform("mvp", mvp);
+                glBindVertexArray(data.vertices[i][j].value());
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.indices[i][j].value());
+                glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i][j].value());
+                glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr);
+            }
         }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Apply post processing
         _gl_manager->bind(_post_processing_programs.sky);

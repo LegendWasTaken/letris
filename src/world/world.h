@@ -13,6 +13,7 @@
 #include <entt/entt.hpp>
 
 #include <unordered_map>
+#include <bitset>
 
 namespace let {
 
@@ -31,7 +32,9 @@ namespace let {
     private:
         friend bridge::render_data;
 
-        uint64_t _player;
+        void _update_chunk_visibility(int32_t x, int32_t z);
+
+        uint64_t _player = {};
 
         uint64_t _last_position_update = 0;
 

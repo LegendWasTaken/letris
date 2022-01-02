@@ -226,8 +226,25 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 
             case 0x26: {
                 auto packet = let::packets::read<packets::state::play>::map_chunk_bulk(buffer);
+
+                auto chunks_added = std::vector<glm::ivec2>();
+                for (const auto &chunk : packet.chunks)
+                    chunks_added.emplace_back(chunk.x, chunk.z);
+
                 for (auto &chunk : packet.chunks)
-                    _chunks.insert({let::chunk::key(chunk), std::move(chunk)});
+                {
+                    const auto key = let::chunk::key(chunk);
+                    const auto x = chunk.x;
+                    const auto z = chunk.z;
+                    _chunks.insert({key, std::move(chunk)});
+                    _update_chunk_visibility(x, z);
+                }
+
+                for (const auto added : chunks_added)
+                {
+
+                }
+
                 break;
             }
 
@@ -425,4 +442,46 @@ glm::vec3 let::world::world_pos() const {
         return _entities.get<entity::position>(_player).data;
     else
         return glm::vec3(0, 0, 0);
+}
+
+void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
+    auto it = _chunks.find(chunk::key(x, z));
+    if (it != _chunks.end()) {
+        auto &c = it->second;
+
+        for (auto bx = 0; bx < 16; bx++) {
+            for (auto bz = 0; bz < 16; bz++) {
+                for (auto by = 0; by < 256; by++) {
+                    if (c[by / 16] == nullptr)
+                        continue;
+
+                    const auto chunk_pos = glm::ivec3(c.x, 0, c.z);
+                    const auto local_pos = glm::ivec3(bx, by, bz);
+                    const auto world_pos = glm::ivec3(c.x * 16)
+
+#define VALID(pos) (0 <= (pos).x && (pos).x < 16 && 0 <= (pos).y && (pos).y < 256 && 0 <= (pos).z && (pos).z < 16)
+                    auto faces = std::bitset<6>();
+
+                    faces[0] = VALID(glm::vec3(bx, by, bz + 1)) ? c.get_block(bx, by, bz + 1).id() == 0 : true;
+                    faces[1] = VALID(glm::vec3(bx, by, bz - 1)) ? c.get_block(bx, by, bz - 1).id() == 0 : true;
+                    faces[2] = VALID(glm::vec3(bx + 1, by, bz)) ? c.get_block(bx + 1, by, bz).id() == 0 : true;
+                    faces[3] = VALID(glm::vec3(bx - 1, by, bz)) ? c.get_block(bx - 1, by, bz).id() == 0 : true;
+                    faces[4] = VALID(glm::vec3(bx, by + 1, bz)) ? c.get_block(bx, by + 1, bz).id() == 0 : true;
+                    faces[5] = VALID(glm::vec3(bx, by - 1, bz)) ? c.get_block(bx, by - 1, bz).id() == 0 : true;
+
+#undef VALID
+                    auto b = c.get_block(bx, by, bz);
+                    for (int i = 0; i < 6; ++i) {
+                        if (faces[i])
+                        {
+                            b.set_visible(static_cast<block::face>(i));
+                        }
+                        else
+                            b.set_unvisible(static_cast<block::face>(i));
+                    }
+                    c.set_block(bx, by, bz, b);
+                }
+            }
+        }
+    }
 }

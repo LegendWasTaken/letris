@@ -715,8 +715,10 @@ let::packets::read<let::packets::state::play>::chunk_data(let::network::byte_buf
             const auto blocks = buffer.next_bytes(2 * 4096); // 2048 shorts for the blocks
             for (auto k = 0; k < 4096; k++)
             {
-                const auto block = *reinterpret_cast<uint16_t const*>(blocks.data());
+                const auto block = reinterpret_cast<uint16_t const*>(blocks.data())[k];
                 section->blocks[k] = let::block(block);
+                for (auto l = 0; l < 6; l++)
+                    section->blocks[k].set_visible(static_cast<block::face>(l));
             }
 
             chunk.section_at(j) = std::move(section);
@@ -867,10 +869,9 @@ let::packets::read<let::packets::state::play>::map_chunk_bulk(let::network::byte
                 const auto blocks = buffer.next_bytes(2 * 4096); // 2048 shorts for the blocks
                 for (auto k = 0; k < 4096; k++)
                 {
-                    const auto block = *reinterpret_cast<uint16_t const*>(blocks.data());
+                    const auto block = reinterpret_cast<uint16_t const*>(blocks.data())[k];
                     section->blocks[k] = let::block(block);
                 }
-//                std::memcpy(section->blocks.data(), blocks.data(), blocks.size());
 
                 chunk.section_at(j) = std::move(section);
             }

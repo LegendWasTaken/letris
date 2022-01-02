@@ -148,7 +148,7 @@ void let::game::_tick(double dt) {
     if (_world.has_value()) {
         _window->mouse().hide();
 
-        constexpr auto speed = 5.0f;
+        constexpr auto speed = 200.0f;
 
         auto movement_direction = glm::vec3();
 
@@ -180,14 +180,17 @@ void let::game::_tick(double dt) {
 
         const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
         // Todo: move this logic of moving into the world
-        _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.04);
+        _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.8);
+
+        const auto world_pos = _world_pos + _world.value().world_pos();
 
         auto render_data = let::bridge::render_data(_world.value(), *_render_cache);
         auto chunk_data = render_data.data();
 
         _gpu.texture.render_target = _renderer->render({
-                                                               .offset = _world_pos,
+                                                               .offset = world_pos,
                                                                .rotation = rotation,
+                                                               .positions = chunk_data.positions,
                                                                .vertices = chunk_data.vertices,
                                                                .indices = chunk_data.indices,
                                                                .indirects = chunk_data.indirects

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <array>
+#include <spdlog/spdlog.h>
 
 namespace let {
     class block {
@@ -17,7 +18,7 @@ namespace let {
         constexpr static uint32_t UP_MASK = 0b0000'0000'0000'0000'0000'1000'0000'0000;
         constexpr static uint32_t DOWN_MASK = 0b0000'0000'0000'0000'0000'0100'0000'0000;
 
-        constexpr static auto FACE_MASKS = std::array<int32_t, 6>({
+        constexpr static auto FACE_MASKS = std::array<uint32_t, 6>({
             NORTH_MASK,
             SOUTH_MASK,
             WEST_MASK,
@@ -52,16 +53,16 @@ namespace let {
         }
 
         void set_visible(face block_face) noexcept {
-            _data |= FACE_MASKS[static_cast<int32_t>(block_face)];
+            _data |= FACE_MASKS[static_cast<uint32_t>(block_face)];
         }
 
         void set_unvisible(face block_face) noexcept {
-            _data &= ~FACE_MASKS[static_cast<int32_t>(block_face)];
+            _data &= ~FACE_MASKS[static_cast<uint32_t>(block_face)];
         }
 
         [[nodiscard]]
         bool visible(face block_face) const noexcept {
-            return _data & FACE_MASKS[static_cast<int32_t>(block_face)];
+            return _data & FACE_MASKS[static_cast<uint32_t>(block_face)];
         }
 
         uint32_t *data() {

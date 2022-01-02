@@ -23,9 +23,10 @@ namespace let {
         struct render_data {
             glm::vec3 offset;
             glm::mat4 rotation;
-            std::span<GLuint> vertices;
-            std::span<GLuint> indices;
-            std::span<GLuint> indirects;
+            std::span<glm::ivec2> positions;
+            std::span<std::array<std::optional<GLuint>, 16>> vertices;
+            std::span<std::array<std::optional<GLuint>, 16>> indices;
+            std::span<std::array<std::optional<GLuint>, 16>> indirects;
         };
 
         [[nodiscard]] std::uint32_t render(const render_data &data);
