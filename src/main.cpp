@@ -3,6 +3,8 @@
 int main() {
     ZoneScopedN("main");
 
+    let::block block(0);
+
     sockpp::socket_initializer sockInit {};
     let::window_init windowInit {};
     let::ultralight_init ultralightInit {};

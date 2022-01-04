@@ -191,8 +191,7 @@ void let::game::_tick(double dt) {
                                                                .offset = world_pos,
                                                                .rotation = rotation,
                                                                .positions = chunk_data.positions,
-                                                               .vertices = chunk_data.vertices,
-                                                               .indices = chunk_data.indices,
+                                                               .faces = chunk_data.faces,
                                                                .indirects = chunk_data.indirects
                                                        });
     } else {

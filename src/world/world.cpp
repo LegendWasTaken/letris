@@ -449,7 +449,7 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
     if (it != _chunks.end()) {
         auto &c = it->second;
 
-        auto side_chunks = std::array<let::chunk const*, 4>();
+        auto side_chunks = std::array<let::chunk*, 4>();
         const auto chunk_offsets = std::array<glm::ivec2, 4>({
             glm::ivec2(0,  1),
             glm::ivec2(0, -1),
@@ -460,7 +460,7 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
         for (auto i = 0; i < 4; i++)
         {
             const auto side_it = _chunks.find(chunk::key(c.x + chunk_offsets[i].x, c.z + chunk_offsets[i].y));
-            side_chunks[i] = side_it == _chunks.end() ? nullptr : &it->second;
+            side_chunks[i] = side_it == _chunks.end() ? nullptr : &side_it->second;
         }
 
         for (auto bx = 0; bx < 16; bx++) {
@@ -472,15 +472,15 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
                     const auto chunk_pos = glm::ivec3(c.x, 0, c.z);
                     const auto local_pos = glm::ivec3(bx, by, bz);
                     const auto world_pos = glm::ivec3(c.x * 16 + bx, by, c.z * 16 + bz);
-
                     const auto offsets = std::array<glm::ivec3, 6>({
-                        glm::ivec3(0, 0,  1),
-                        glm::ivec3(0, 0, -1),
-                        glm::ivec3(+1, 0, 0),
-                        glm::ivec3(-1, 0, 0),
-                        glm::ivec3(0, +1, 0),
-                        glm::ivec3(0, -1, 0),
-                    });
+                                                                           glm::ivec3(0, 0,  1),
+                                                                           glm::ivec3(0, 0, -1),
+                                                                           glm::ivec3(+1, 0, 0),
+                                                                           glm::ivec3(-1, 0, 0),
+                                                                           glm::ivec3(0, +1, 0),
+                                                                           glm::ivec3(0, -1, 0),
+                                                                   });
+
 
                     auto b = c.get_block(bx, by, bz);
 
@@ -492,48 +492,45 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
                             const auto block_at = c.get_block(p.x, p.y, p.z);
                             faces[i] = block_at.id() == 0;
                         } else {
-                            let::chunk const *offset = nullptr;
-                            if (p.x == 16)
-                                offset = side_chunks[2];
-                            if (p.x == -1)
-                                offset = side_chunks[3];
-                            if (p.z == 16)
+                            let::chunk *offset = nullptr;
+
+                            if (offsets[i].z == 1)
                                 offset = side_chunks[0];
-                            if (p.z == -1)
+                            if (offsets[i].z == -1)
                                 offset = side_chunks[1];
+                            if (offsets[i].x == 1)
+                                offset = side_chunks[2];
+                            if (offsets[i].x == -1)
+                                offset = side_chunks[3];
 
                             if (offset == nullptr)
                                 faces[i] = true;
                             else {
                                 const auto o_x = offset->x * 16;
                                 const auto o_z = offset->z * 16;
-                                glm::ivec3 local_offset = world_pos - glm::ivec3(o_x, 0, o_z) + offsets[i];
+                                auto local_offset = world_pos + offsets[i];
+                                local_offset.x &= 0xF;
+                                local_offset.z &= 0xF;
 
                                 auto face = block::face::north;
 
-                                if (local_offset.x < 0)
-                                {
-                                    face = block::face::east;
-                                    local_offset.x = 15;
-                                }
-                                if (local_offset.z < 0)
-                                {
-                                    face = block::face::south;
-                                    local_offset.z = 15;
-                                }
-                                if (local_offset.x > 15)
-                                {
+                                if (offsets[i].x == -1) {
                                     face = block::face::west;
-                                    local_offset.x = 0;
                                 }
-                                if (local_offset.z > 15) {
-
+                                if (offsets[i].z == -1) {
                                     face = block::face::north;
-                                    local_offset.z = 0;
+                                }
+                                if (offsets[i].x == 1) {
+                                    face = block::face::east;
+                                }
+                                if (offsets[i].z == 1) {
+                                    face = block::face::south;
                                 }
 //                                spdlog::debug("compensated corrected {} {} {}", local_offset.x, local_offset.y, local_offset.z);
 
                                 auto offset_block = offset->get_block(local_offset.x, local_offset.y, local_offset.z);
+                                const auto offset_data = *offset_block.data();
+
                                 faces[i] = offset_block.id() == 0;
 
                                 if (b.id() == 0) {
@@ -541,6 +538,11 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
                                 } else {
                                     offset_block.set_unvisible(face);
                                 }
+
+                                if (offset_data != *offset_block.data())
+                                    offset->should_rerender = true;
+
+                                offset->set_block(local_offset.x, local_offset.y, local_offset.z, offset_block);
                             }
                         }
                     }

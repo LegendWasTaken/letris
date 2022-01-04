@@ -23,9 +23,7 @@ namespace let::bridge {
         struct data
         {
             glm::ivec2 pos;
-            std::array<std::optional<GLuint>, 16> vao;
-            std::array<std::optional<GLuint>, 16> vbo;
-            std::array<std::optional<GLuint>, 16> ebo;
+            std::array<std::optional<GLuint>, 16> faces;
             std::array<std::optional<GLuint>, 16> indirect;
         };
 
@@ -51,8 +49,7 @@ namespace let::bridge {
         struct chunk_data
         {
             std::vector<glm::ivec2> positions;
-            std::vector<std::array<std::optional<GLuint>, 16>> vertices;
-            std::vector<std::array<std::optional<GLuint>, 16>> indices;
+            std::vector<std::array<std::optional<GLuint>, 16>> faces;
             std::vector<std::array<std::optional<GLuint>, 16>> indirects;
         };
         [[nodiscard]] chunk_data data();

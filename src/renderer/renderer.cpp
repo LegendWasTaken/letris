@@ -77,21 +77,25 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
 
         const auto proj = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100000.f);
 
-        for (auto i = 0; i < data.vertices.size(); i++)
+        for (auto i = 0; i < data.faces.size(); i++)
         {
-            for (auto j = 0; j < 16; j++)
+            for (auto j = 0; j < 16; j += 2)
             {
-                if (!data.vertices[i][j].has_value())
+                if (!data.faces[i][j].has_value())
                     continue;
 
                 const auto model = glm::translate(glm::mat4(1.0f), glm::vec3(data.positions[i].x * 16.0f, j * 16.0f, data.positions[i].y * 16.0f));
                 const auto mvp = proj * view_rot * model;
 
+                auto exists = std::uint32_t();
+
                 _gl_manager->uniform("mvp", mvp);
-                glBindVertexArray(data.vertices[i][j].value());
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.indices[i][j].value());
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data.faces[i][j].value());
                 glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i][j].value());
-                glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr);
+
+
+                TracyGpuZone("renderer::draw_arrays");
+                glDrawArraysIndirect(GL_TRIANGLES, nullptr);
             }
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

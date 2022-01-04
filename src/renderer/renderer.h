@@ -26,8 +26,7 @@ namespace let {
             glm::vec3 offset;
             glm::mat4 rotation;
             std::span<glm::ivec2> positions;
-            std::span<std::array<std::optional<GLuint>, 16>> vertices;
-            std::span<std::array<std::optional<GLuint>, 16>> indices;
+            std::span<std::array<std::optional<GLuint>, 16>> faces;
             std::span<std::array<std::optional<GLuint>, 16>> indirects;
         };
 

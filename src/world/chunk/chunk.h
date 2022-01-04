@@ -23,6 +23,7 @@ namespace let {
 
         chunk_section() = default;
 
+        mutable bool should_rerender;
         std::array<let::block, 16 * 16 * 16> blocks;
     };
 
@@ -37,7 +38,11 @@ namespace let {
 
         [[nodiscard]] static std::uint64_t key(std::int32_t x, std::int32_t z) noexcept;
 
+        // Todo: Make this private and make a method in the world that allows for cached block updates
+        mutable bool should_rerender;
+
         const std::int32_t x;
+
         const std::int32_t z;
 
         chunk(std::int32_t x, std::int32_t z);
@@ -53,8 +58,29 @@ namespace let {
             sections[by >> 4]->set_block(bx & 0xF, by & 0xF, bz & 0xF, b);
         }
 
+        bool rerender_any() const noexcept {
+            auto should = should_rerender;
+            for (auto &section : sections)
+            {
+                if (section != nullptr)
+                    should |= section->should_rerender;
+            }
+            return should;
+        }
+
+        void rerendered() const noexcept {
+            should_rerender = false;
+            for (auto &section : sections)
+            {
+                if (section != nullptr)
+                    section->should_rerender = false;
+            }
+        }
+
         [[nodiscard]] chunk_section *operator[](size_t y) noexcept;
+
         [[nodiscard]] const chunk_section *operator[](size_t y) const noexcept;
+
         [[nodiscard]] std::unique_ptr<chunk_section> &section_at(size_t y);
     };
 }
