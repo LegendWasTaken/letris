@@ -36,6 +36,7 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
 
     glfwMakeContextCurrent(_window);
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    TracyGpuContext;
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
@@ -93,6 +94,7 @@ void let::window::display_frame(let::window::render_targets targets) {
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    TracyGpuCollect;
     glfwSwapBuffers(_window);
 
     glfwSetInputMode(_window, GLFW_CURSOR, _mouse.hidden() ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);

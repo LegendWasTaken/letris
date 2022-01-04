@@ -449,6 +449,20 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
     if (it != _chunks.end()) {
         auto &c = it->second;
 
+        auto side_chunks = std::array<let::chunk const*, 4>();
+        const auto chunk_offsets = std::array<glm::ivec2, 4>({
+            glm::ivec2(0,  1),
+            glm::ivec2(0, -1),
+            glm::ivec2( 1, 0),
+            glm::ivec2(-1, 0)
+        });
+
+        for (auto i = 0; i < 4; i++)
+        {
+            const auto side_it = _chunks.find(chunk::key(c.x + chunk_offsets[i].x, c.z + chunk_offsets[i].y));
+            side_chunks[i] = side_it == _chunks.end() ? nullptr : &it->second;
+        }
+
         for (auto bx = 0; bx < 16; bx++) {
             for (auto bz = 0; bz < 16; bz++) {
                 for (auto by = 0; by < 256; by++) {
@@ -457,20 +471,80 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
 
                     const auto chunk_pos = glm::ivec3(c.x, 0, c.z);
                     const auto local_pos = glm::ivec3(bx, by, bz);
-                    const auto world_pos = glm::ivec3(c.x * 16)
+                    const auto world_pos = glm::ivec3(c.x * 16 + bx, by, c.z * 16 + bz);
 
-#define VALID(pos) (0 <= (pos).x && (pos).x < 16 && 0 <= (pos).y && (pos).y < 256 && 0 <= (pos).z && (pos).z < 16)
+                    const auto offsets = std::array<glm::ivec3, 6>({
+                        glm::ivec3(0, 0,  1),
+                        glm::ivec3(0, 0, -1),
+                        glm::ivec3(+1, 0, 0),
+                        glm::ivec3(-1, 0, 0),
+                        glm::ivec3(0, +1, 0),
+                        glm::ivec3(0, -1, 0),
+                    });
+
+                    auto b = c.get_block(bx, by, bz);
+
                     auto faces = std::bitset<6>();
 
-                    faces[0] = VALID(glm::vec3(bx, by, bz + 1)) ? c.get_block(bx, by, bz + 1).id() == 0 : true;
-                    faces[1] = VALID(glm::vec3(bx, by, bz - 1)) ? c.get_block(bx, by, bz - 1).id() == 0 : true;
-                    faces[2] = VALID(glm::vec3(bx + 1, by, bz)) ? c.get_block(bx + 1, by, bz).id() == 0 : true;
-                    faces[3] = VALID(glm::vec3(bx - 1, by, bz)) ? c.get_block(bx - 1, by, bz).id() == 0 : true;
-                    faces[4] = VALID(glm::vec3(bx, by + 1, bz)) ? c.get_block(bx, by + 1, bz).id() == 0 : true;
-                    faces[5] = VALID(glm::vec3(bx, by - 1, bz)) ? c.get_block(bx, by - 1, bz).id() == 0 : true;
+                    for (auto i = 0; i < offsets.size(); i++) {
+                        const auto p = local_pos + offsets[i];
+                        if (0 <= p.x && p.x < 16 && 0 <= p.y && p.y < 256 && 0 <= p.z && p.z < 16) {
+                            const auto block_at = c.get_block(p.x, p.y, p.z);
+                            faces[i] = block_at.id() == 0;
+                        } else {
+                            let::chunk const *offset = nullptr;
+                            if (p.x == 16)
+                                offset = side_chunks[2];
+                            if (p.x == -1)
+                                offset = side_chunks[3];
+                            if (p.z == 16)
+                                offset = side_chunks[0];
+                            if (p.z == -1)
+                                offset = side_chunks[1];
 
-#undef VALID
-                    auto b = c.get_block(bx, by, bz);
+                            if (offset == nullptr)
+                                faces[i] = true;
+                            else {
+                                const auto o_x = offset->x * 16;
+                                const auto o_z = offset->z * 16;
+                                glm::ivec3 local_offset = world_pos - glm::ivec3(o_x, 0, o_z) + offsets[i];
+
+                                auto face = block::face::north;
+
+                                if (local_offset.x < 0)
+                                {
+                                    face = block::face::east;
+                                    local_offset.x = 15;
+                                }
+                                if (local_offset.z < 0)
+                                {
+                                    face = block::face::south;
+                                    local_offset.z = 15;
+                                }
+                                if (local_offset.x > 15)
+                                {
+                                    face = block::face::west;
+                                    local_offset.x = 0;
+                                }
+                                if (local_offset.z > 15) {
+
+                                    face = block::face::north;
+                                    local_offset.z = 0;
+                                }
+//                                spdlog::debug("compensated corrected {} {} {}", local_offset.x, local_offset.y, local_offset.z);
+
+                                auto offset_block = offset->get_block(local_offset.x, local_offset.y, local_offset.z);
+                                faces[i] = offset_block.id() == 0;
+
+                                if (b.id() == 0) {
+                                    offset_block.set_visible(face);
+                                } else {
+                                    offset_block.set_unvisible(face);
+                                }
+                            }
+                        }
+                    }
+
                     for (int i = 0; i < 6; ++i) {
                         if (faces[i])
                         {

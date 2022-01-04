@@ -12,6 +12,7 @@
 #include <renderer/renderer.h>
 
 #include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 
 namespace let::bridge {
 
@@ -57,6 +58,8 @@ namespace let::bridge {
         [[nodiscard]] chunk_data data();
 
     private:
+        void _mesh_chunk(const let::chunk &chunk, render_data_cache::data &data, render_data_cache &cache);
+
         std::unordered_map<uint64_t, render_data_cache::data> _chunks;
 
     };

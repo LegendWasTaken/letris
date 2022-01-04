@@ -180,7 +180,7 @@ void let::game::_tick(double dt) {
 
         const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
         // Todo: move this logic of moving into the world
-        _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.8);
+        _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.1);
 
         const auto world_pos = _world_pos + _world.value().world_pos();
 

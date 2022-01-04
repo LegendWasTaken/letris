@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 
 #include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 
 namespace let {
     class window_init {
