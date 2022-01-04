@@ -547,6 +547,9 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
                         }
                     }
 
+                    if (b.id() == 0)
+                        continue;
+
                     for (int i = 0; i < 6; ++i) {
                         if (faces[i])
                         {

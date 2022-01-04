@@ -51,7 +51,6 @@ let::bridge::render_data::render_data(const let::world &world, render_data_cache
             _chunks[key] = data;
         }
     }
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
 let::bridge::render_data::chunk_data let::bridge::render_data::data() {
@@ -85,27 +84,11 @@ void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_
 
     if (should_render)
     {
-        static auto chunk_blocks_combined = std::vector<uint32_t>(16 * 256 * 16);
-        std::memset(chunk_blocks_combined.data(), 0, sizeof(uint32_t) * chunk_blocks_combined.size());
-        for (int i = 0; i < 16; i++)
-        {
-            constexpr auto PER_SECTION = 16 * 16 * 16;
-
-            if (chunk[i] == nullptr)
-                continue;
-            std::memcpy(chunk_blocks_combined.data() + i * PER_SECTION, chunk[i]->blocks.data(), sizeof(uint32_t) * PER_SECTION);
-        }
-
         auto faces = GLuint();
-        auto blocks = GLuint();
         auto indirect = GLuint();
 
         glGenBuffers(1, &faces);
-        glGenBuffers(1, &blocks);
         glGenBuffers(1, &indirect);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, faces);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, total_visible * sizeof(int32_t) * 4, nullptr, GL_STREAM_COPY);
 
         struct {
             uint32_t count = 0;
@@ -113,29 +96,50 @@ void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_
             uint32_t firstIndex = 0;
             int32_t baseVertex = 0;
             uint32_t reservedMustBeZero = 0;
-            uint32_t pad0 = 0;
-            uint32_t pad1 = 0;
-            uint32_t pad2 = 0;
+            uint32_t p0 = 0;
+            uint32_t p1 = 0;
+            uint32_t p2 = 0;
         } indirect_base;
+        indirect_base.count = total_visible * 6;
+
+        // Build the chunk mesh
+        auto face_buffer = std::vector<glm::ivec4>();
+        face_buffer.reserve(total_visible);
+
+        for (auto i = 0; i < 16; i++)
+        {
+            if (chunk[i] == nullptr)
+                continue;
+            auto section = chunk[i];
+            for (auto y = 0; y < 16; y++)
+                for (auto z = 0; z < 16; z++)
+                    for (auto x = 0; x < 16; x++)
+                    {
+                        auto b = section->get_block(x, y, z);
+                        auto make_face = [](glm::ivec3 bp, uint32_t direction, uint32_t id) {
+                            uint32_t meta = (direction << 12) & 0xF000;
+                            meta |= (id << 16) & 0xFFFF0000;
+                            int32_t meta_as_int;
+                            std::memcpy(&meta_as_int, &meta, sizeof(uint32_t));
+                            return glm::ivec4(bp, static_cast<int32_t>(meta_as_int));
+                        };
+
+                        if (b.id() == 0)
+                            continue;
+
+                        for (auto j = 0; j < 6; j++)
+                            if (b.visible(static_cast<block::face>(j)))
+                                face_buffer.push_back(make_face({x, y + i * 16, z}, j, b.id()));
+                    }
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, faces);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, total_visible * sizeof(int32_t) * 4, face_buffer.data(), GL_STREAM_COPY);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, indirect);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 5 * sizeof(uint32_t), &indirect_base, GL_STREAM_COPY);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, blocks);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 16 * 256 * 16 * sizeof(uint32_t), chunk_blocks_combined.data(), GL_STREAM_COPY);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, faces);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, indirect);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, blocks);
-
-        TracyGpuZone("mesh::compute");
-        glDispatchCompute(2, 32, 2);
-
-        glDeleteBuffers(1, &blocks);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 8 * sizeof(uint32_t), &indirect_base, GL_STREAM_COPY);
 
         data.faces = faces;
         data.indirect = indirect;
-    } else {
-        spdlog::debug("chunk with no visible faces");
     }
 }

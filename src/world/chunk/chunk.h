@@ -39,7 +39,7 @@ namespace let {
         [[nodiscard]] static std::uint64_t key(std::int32_t x, std::int32_t z) noexcept;
 
         // Todo: Make this private and make a method in the world that allows for cached block updates
-        mutable bool should_rerender;
+        mutable bool should_rerender{};
 
         const std::int32_t x;
 

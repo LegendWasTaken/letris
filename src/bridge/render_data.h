@@ -11,6 +11,8 @@
 
 #include <renderer/renderer.h>
 
+#include <common/task_executor.h>
+
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyOpenGL.hpp>
 

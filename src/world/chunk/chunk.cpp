@@ -13,7 +13,7 @@ void let::chunk::_ensure_chunk(std::uint8_t y) {
         sections[y] = std::make_unique<chunk_section>();
 }
 
-let::chunk::chunk(std::int32_t x, std::int32_t z) : x(x), z(z) {
+let::chunk::chunk(std::int32_t x, std::int32_t z) : x(x), z(z), should_rerender(false) {
     for (auto &ptr : sections)
         ptr = nullptr;
 }
