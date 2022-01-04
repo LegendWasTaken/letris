@@ -47,6 +47,8 @@ let::window::window(std::uint16_t width, std::uint16_t height, const std::string
     glfwSetMouseButtonCallback(_window, _glfw_mouse_button_callback);
     glfwSetKeyCallback(_window, _glfw_key_callback);
 
+//    glfwSwapInterval(0);
+
     _fullscreen_program = _opengl_manager->create_program({
         "shaders/fullscreen_texture/shader.vert",
         "shaders/fullscreen_texture/shader.frag"});

@@ -79,24 +79,23 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
 
         for (auto i = 0; i < data.faces.size(); i++)
         {
-            for (auto j = 0; j < 16; j += 2)
+            if (!data.faces[i].has_value())
             {
-                if (!data.faces[i][j].has_value())
-                    continue;
-
-                const auto model = glm::translate(glm::mat4(1.0f), glm::vec3(data.positions[i].x * 16.0f, j * 16.0f, data.positions[i].y * 16.0f));
-                const auto mvp = proj * view_rot * model;
-
-                auto exists = std::uint32_t();
-
-                _gl_manager->uniform("mvp", mvp);
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data.faces[i][j].value());
-                glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i][j].value());
-
-
-                TracyGpuZone("renderer::draw_arrays");
-                glDrawArraysIndirect(GL_TRIANGLES, nullptr);
+                spdlog::debug("chunk had no face value");
+                continue;
             }
+
+            const auto model = glm::translate(glm::mat4(1.0f), glm::vec3(data.positions[i].x * 16.0f, 0.0f, data.positions[i].y * 16.0f));
+            const auto mvp = proj * view_rot * model;
+
+            auto exists = std::uint32_t();
+
+            _gl_manager->uniform("mvp", mvp);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data.faces[i].value());
+            glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i].value());
+
+            TracyGpuZone("renderer::draw_arrays");
+            glDrawArraysIndirect(GL_TRIANGLES, nullptr);
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

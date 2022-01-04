@@ -182,7 +182,7 @@ void let::game::_tick(double dt) {
         // Todo: move this logic of moving into the world
         _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(0.1);
 
-        const auto world_pos = _world_pos + _world.value().world_pos();
+        const auto world_pos = _world_pos + _world.value().world_pos() + glm::vec3(0, 500, 0);
 
         auto render_data = let::bridge::render_data(_world.value(), *_render_cache);
         auto chunk_data = render_data.data();

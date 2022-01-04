@@ -27,16 +27,14 @@ let::bridge::render_data::render_data(const let::world &world, render_data_cache
 
         if (found && !rerender) {
             _chunks[key] = it->second;
-        } else if (found && rerender) {
+        } else if (found) {
             auto data = _chunks[key];
-            for (auto i = 0; i < 16; i++)
+            if (data.indirect.has_value())
             {
-                if (!data.indirect[i].has_value())
-                    continue;
-
-                glDeleteBuffers(1, &data.faces[i].value());
-                glDeleteBuffers(1, &data.indirect[i].value());
+                glDeleteBuffers(1, &data.faces.value());
+                glDeleteBuffers(1, &data.indirect.value());
             }
+
             _mesh_chunk(render_chunk.second, data, cache);
             render_chunk.second.rerendered();
 
@@ -76,15 +74,27 @@ void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_
     ZoneScopedN("mesh chunk");
     cache._gl_manager->bind(cache._meshing_program);
 
+    auto total_visible = size_t(0);
     for (int i = 0; i < 16; i++)
+        total_visible += chunk[i] != nullptr ? chunk[i]->visible_faces() : 0;
+
+    const auto should_render = total_visible > 0;
+
+    data.pos.x = chunk.x;
+    data.pos.y = chunk.z;
+
+    if (should_render)
     {
-        if (chunk[i] == nullptr)
-            continue;
+        static auto chunk_blocks_combined = std::vector<uint32_t>(16 * 256 * 16);
+        std::memset(chunk_blocks_combined.data(), 0, sizeof(uint32_t) * chunk_blocks_combined.size());
+        for (int i = 0; i < 16; i++)
+        {
+            constexpr auto PER_SECTION = 16 * 16 * 16;
 
-        const auto visible_faces = chunk[i]->visible_faces();
-
-        if (visible_faces == 0)
-            continue;
+            if (chunk[i] == nullptr)
+                continue;
+            std::memcpy(chunk_blocks_combined.data() + i * PER_SECTION, chunk[i]->blocks.data(), sizeof(uint32_t) * PER_SECTION);
+        }
 
         auto faces = GLuint();
         auto blocks = GLuint();
@@ -95,7 +105,7 @@ void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_
         glGenBuffers(1, &indirect);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, faces);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, visible_faces * sizeof(int32_t) * 4, nullptr, GL_STREAM_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, total_visible * sizeof(int32_t) * 4, nullptr, GL_STREAM_COPY);
 
         struct {
             uint32_t count = 0;
@@ -103,24 +113,29 @@ void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_
             uint32_t firstIndex = 0;
             int32_t baseVertex = 0;
             uint32_t reservedMustBeZero = 0;
+            uint32_t pad0 = 0;
+            uint32_t pad1 = 0;
+            uint32_t pad2 = 0;
         } indirect_base;
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, indirect);
         glBufferData(GL_SHADER_STORAGE_BUFFER, 5 * sizeof(uint32_t), &indirect_base, GL_STREAM_COPY);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, blocks);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 16 * 16 * 16 * sizeof(uint32_t), chunk[i]->blocks.data(), GL_STREAM_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 16 * 256 * 16 * sizeof(uint32_t), chunk_blocks_combined.data(), GL_STREAM_COPY);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, faces);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, indirect);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, blocks);
 
         TracyGpuZone("mesh::compute");
-        glDispatchCompute(4, 4, 4);
+        glDispatchCompute(2, 32, 2);
 
-        data.faces[i] = faces;
-        data.indirect[i] = indirect;
+        glDeleteBuffers(1, &blocks);
+
+        data.faces = faces;
+        data.indirect = indirect;
+    } else {
+        spdlog::debug("chunk with no visible faces");
     }
-    data.pos.x = chunk.x;
-    data.pos.y = chunk.z;
 }

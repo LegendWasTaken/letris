@@ -16,7 +16,7 @@ layout (std430, binding = 2) buffer block_buffer {
     uint blocks[16 * 256 * 16];
 };
 
-layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+layout(local_size_x = 2, local_size_y = 8, local_size_z = 8) in;
 
 #define FN 0
 #define FS 1
@@ -33,9 +33,11 @@ ivec4 make_face(uint direction, uint id, ivec3 block_pos)
     return ivec4(block_pos, meta);
 }
 
-void main() {
-    ivec3 bp = ivec3(gl_GlobalInvocationID);
-    uint block = blocks[(bp.y & 0xF) << 8 | (bp.z & 0xF) << 4 | (bp.x & 0xF)];
+uint out_face_size = 0;
+ivec4 out_faces[4 * 6];
+void generate_block(ivec3 bp)
+{
+    uint block = blocks[(bp.y & 0xFF) << 8 | (bp.z & 0xF) << 4 | (bp.x & 0xF)];
     uint seed = (block & uint(0xFFFF0000)) >> 16;
     uint id = seed;
 
@@ -49,18 +51,28 @@ void main() {
     valid_faces[FU] = bool(block & uint(0x800)) && is_not_air;
     valid_faces[FD] = bool(block & uint(0x400)) && is_not_air;
 
-    uint out_face_size = 0;
-    ivec4 out_faces[6];
-
     if (valid_faces[FN]) out_faces[out_face_size++] = make_face(FN, id, bp);
     if (valid_faces[FS]) out_faces[out_face_size++] = make_face(FS, id, bp);
     if (valid_faces[FW]) out_faces[out_face_size++] = make_face(FW, id, bp);
     if (valid_faces[FE]) out_faces[out_face_size++] = make_face(FE, id, bp);
     if (valid_faces[FU]) out_faces[out_face_size++] = make_face(FU, id, bp);
     if (valid_faces[FD]) out_faces[out_face_size++] = make_face(FD, id, bp);
+}
 
-    uint current_face_size = atomicAdd(vertex_count, out_face_size * 6) / 6;
+shared uint shared_vertex_count = 0;
+shared uint shared_buffer_index = 0;
 
+void main() {
+    ivec3 bp = ivec3(gl_GlobalInvocationID);
+
+    for (int i = 0; i < 4; i++)
+        generate_block(bp * ivec3(4, 1, 1) + ivec3(i, 0, 0));
+
+    uint group_local_offset = atomicAdd(shared_vertex_count, out_face_size * 6) / 6;
+    barrier();
+    if (gl_LocalInvocationIndex == 0)
+        shared_buffer_index = atomicAdd(vertex_count, shared_vertex_count * 6) / 6;
+    barrier();
     for (int i = 0; i < out_face_size; i++)
-        faces[i + current_face_size] = out_faces[i];
+        faces[shared_buffer_index + group_local_offset + i] = out_faces[i];
 }

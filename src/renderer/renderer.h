@@ -26,8 +26,8 @@ namespace let {
             glm::vec3 offset;
             glm::mat4 rotation;
             std::span<glm::ivec2> positions;
-            std::span<std::array<std::optional<GLuint>, 16>> faces;
-            std::span<std::array<std::optional<GLuint>, 16>> indirects;
+            std::span<std::optional<GLuint>> faces;
+            std::span<std::optional<GLuint>> indirects;
         };
 
         [[nodiscard]] std::uint32_t render(const render_data &data);

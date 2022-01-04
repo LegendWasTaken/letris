@@ -23,8 +23,8 @@ namespace let::bridge {
         struct data
         {
             glm::ivec2 pos;
-            std::array<std::optional<GLuint>, 16> faces;
-            std::array<std::optional<GLuint>, 16> indirect;
+            std::optional<GLuint> faces;
+            std::optional<GLuint> indirect;
         };
 
         explicit render_data_cache(opengl::manager *gl_manager);
@@ -49,8 +49,8 @@ namespace let::bridge {
         struct chunk_data
         {
             std::vector<glm::ivec2> positions;
-            std::vector<std::array<std::optional<GLuint>, 16>> faces;
-            std::vector<std::array<std::optional<GLuint>, 16>> indirects;
+            std::vector<std::optional<GLuint>> faces;
+            std::vector<std::optional<GLuint>> indirects;
         };
         [[nodiscard]] chunk_data data();
 
