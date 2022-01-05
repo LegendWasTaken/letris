@@ -66,9 +66,6 @@ void main()
     block_pos.y = (face_data >> 20) & uint(0xFF);
     block_pos.z = (face_data >> 16) & uint(0xF);
 
-//    uint meta = uint(face_data.w);
-//    uint direction = (meta & uint(0xF000)) >> 12;
-//    uint id = (meta & uint(0xFFFF0000)) >> 16;
     uint direction = (face_data >> 13) & uint(0x7);
     uint id = (face_data >> 5) & uint(0xFF);
     uint meta = (face_data >> 1) & uint(0xF);

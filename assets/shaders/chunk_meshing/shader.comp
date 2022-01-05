@@ -16,7 +16,7 @@ layout (std430, binding = 2) buffer block_buffer {
     uint blocks[16 * 256 * 16];
 };
 
-layout(local_size_x = 2, local_size_y = 8, local_size_z = 8) in;
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 #define FN 0
 #define FS 1
@@ -64,8 +64,7 @@ int face_count(uint block)
     return total;
 }
 
-uint index;
-void write_faces(uint block, ivec3 bp)
+void write_faces(uint index, uint block, ivec3 bp)
 {
     uint id = (block & uint(0xFFFF0000)) >> 16;
 
@@ -98,25 +97,15 @@ uint get_block(ivec3 bp)
 void main() {
     ivec3 bp = ivec3(gl_GlobalInvocationID);
 
-    uint blocks[4];
+    uint block = get_block(bp);
 
-    for (int i = 0; i < 4; i++)
-        blocks[i] = get_block(bp * ivec3(4, 1, 1) + ivec3(i, 0, 0));
-
-    int total_face_count = 0;
-    for (int i = 0; i < 4; i++)
-        total_face_count += face_count(blocks[i]);
+    int total_face_count = face_count(block);
 
     uint group_local_offset = atomicAdd(shared_vertex_count, total_face_count * 6) / 6;
     barrier();
     if (gl_LocalInvocationIndex == 0)
-        shared_buffer_index = atomicAdd(vertex_count, shared_vertex_count * 6) / 6;
+        shared_buffer_index = atomicAdd(vertex_count, shared_vertex_count) / 6;
     barrier();
-    index = shared_buffer_index + group_local_offset;
 
-    for (int i = 0; i < 4; i++)
-        write_faces(blocks[i], bp * ivec3(4, 1, 1) + ivec3(i, 0, 0));
-
-//    for (int i = 0; i < out_face_size; i++)
-//        faces[shared_buffer_index + group_local_offset + i] = out_faces[i];
+    write_faces(shared_buffer_index + group_local_offset, block, bp);
 }
