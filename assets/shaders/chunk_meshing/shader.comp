@@ -1,7 +1,7 @@
 #version 460
 
 layout(std430, binding = 0) buffer faces_buffer {
-    ivec4 faces[];
+    uint faces[];
 };
 
 layout (std430, binding = 1) buffer counter_buffer {
@@ -25,21 +25,49 @@ layout(local_size_x = 2, local_size_y = 8, local_size_z = 8) in;
 #define FU 4
 #define FD 5
 
-ivec4 make_face(uint direction, uint id, ivec3 block_pos)
+// blocks
+// 0bXXXX'YYYY'YYYYY'ZZZZ'DIRI'IIII'IIIM'MMM0
+
+uint make_face(uint direction, uint id, ivec3 block_pos)
+{
+    uint block_id = id >> 4;
+    uint block_meta = id & uint(0xF);
+
+    uint block = 0;
+    block |= uint((block_pos.x & 0xF) << 28);
+    block |= uint((block_pos.y & 0xFF) << 20);
+    block |= uint((block_pos.z & 0xF) << 16);
+    block |= uint((direction & uint(0x7)) << 13);
+    block |= uint((block_id & uint(0xFF)) << 5);
+    block |= uint((block_meta & uint(0xF)) << 1);
+
+    return block;
+}
+ivec4 make_face4(uint direction, uint id, ivec3 block_pos)
 {
     uint meta = (direction << 12) & uint(0xF000);
     meta |= (id << 16) & uint(0xFFFF0000);
 
     return ivec4(block_pos, meta);
 }
-
-uint out_face_size = 0;
-ivec4 out_faces[4 * 6];
-void generate_block(ivec3 bp)
+int face_count(uint block)
 {
-    uint block = blocks[(bp.y & 0xFF) << 8 | (bp.z & 0xF) << 4 | (bp.x & 0xF)];
-    uint seed = (block & uint(0xFFFF0000)) >> 16;
-    uint id = seed;
+    int total = 0;
+    uint id = (block & uint(0xFFFF0000)) >> 16;
+    bool is_not_air = id != 0;
+    total += int(bool(block & uint(0x8000)) && is_not_air);
+    total += int(bool(block & uint(0x4000)) && is_not_air);
+    total += int(bool(block & uint(0x2000)) && is_not_air);
+    total += int(bool(block & uint(0x1000)) && is_not_air);
+    total += int(bool(block & uint(0x800)) && is_not_air);
+    total += int(bool(block & uint(0x400)) && is_not_air);
+    return total;
+}
+
+uint index;
+void write_faces(uint block, ivec3 bp)
+{
+    uint id = (block & uint(0xFFFF0000)) >> 16;
 
     bool is_not_air = id != 0;
 
@@ -51,28 +79,44 @@ void generate_block(ivec3 bp)
     valid_faces[FU] = bool(block & uint(0x800)) && is_not_air;
     valid_faces[FD] = bool(block & uint(0x400)) && is_not_air;
 
-    if (valid_faces[FN]) out_faces[out_face_size++] = make_face(FN, id, bp);
-    if (valid_faces[FS]) out_faces[out_face_size++] = make_face(FS, id, bp);
-    if (valid_faces[FW]) out_faces[out_face_size++] = make_face(FW, id, bp);
-    if (valid_faces[FE]) out_faces[out_face_size++] = make_face(FE, id, bp);
-    if (valid_faces[FU]) out_faces[out_face_size++] = make_face(FU, id, bp);
-    if (valid_faces[FD]) out_faces[out_face_size++] = make_face(FD, id, bp);
+    if (valid_faces[FN]) faces[index++] = make_face(FN, id, bp);
+    if (valid_faces[FS]) faces[index++] = make_face(FS, id, bp);
+    if (valid_faces[FW]) faces[index++] = make_face(FW, id, bp);
+    if (valid_faces[FE]) faces[index++] = make_face(FE, id, bp);
+    if (valid_faces[FU]) faces[index++] = make_face(FU, id, bp);
+    if (valid_faces[FD]) faces[index++] = make_face(FD, id, bp);
 }
 
 shared uint shared_vertex_count = 0;
 shared uint shared_buffer_index = 0;
 
+uint get_block(ivec3 bp)
+{
+    return blocks[(bp.y & 0xFF) << 8 | (bp.z & 0xF) << 4 | (bp.x & 0xF)];
+}
+
 void main() {
     ivec3 bp = ivec3(gl_GlobalInvocationID);
 
-    for (int i = 0; i < 4; i++)
-        generate_block(bp * ivec3(4, 1, 1) + ivec3(i, 0, 0));
+    uint blocks[4];
 
-    uint group_local_offset = atomicAdd(shared_vertex_count, out_face_size * 6) / 6;
+    for (int i = 0; i < 4; i++)
+        blocks[i] = get_block(bp * ivec3(4, 1, 1) + ivec3(i, 0, 0));
+
+    int total_face_count = 0;
+    for (int i = 0; i < 4; i++)
+        total_face_count += face_count(blocks[i]);
+
+    uint group_local_offset = atomicAdd(shared_vertex_count, total_face_count * 6) / 6;
     barrier();
     if (gl_LocalInvocationIndex == 0)
         shared_buffer_index = atomicAdd(vertex_count, shared_vertex_count * 6) / 6;
     barrier();
-    for (int i = 0; i < out_face_size; i++)
-        faces[shared_buffer_index + group_local_offset + i] = out_faces[i];
+    index = shared_buffer_index + group_local_offset;
+
+    for (int i = 0; i < 4; i++)
+        write_faces(blocks[i], bp * ivec3(4, 1, 1) + ivec3(i, 0, 0));
+
+//    for (int i = 0; i < out_face_size; i++)
+//        faces[shared_buffer_index + group_local_offset + i] = out_faces[i];
 }

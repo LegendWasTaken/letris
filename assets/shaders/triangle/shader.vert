@@ -1,7 +1,7 @@
 #version 460
 
 layout(std430, binding = 0) buffer faces_buffer {
-    ivec4 faces[];
+    uint faces[];
 };
 
 out vec3 c_col;
@@ -59,14 +59,29 @@ void main()
     int face_idx = gl_VertexID / 6;
     int face_vertex_num = gl_VertexID % 6;
 
-    vec3 block_pos = vec3(faces[face_idx].xyz);
-    uint meta = uint(faces[face_idx].w);
+    uint face_data = faces[face_idx];
 
-    uint direction = (meta & uint(0xF000)) >> 12;
-    uint id = (meta & uint(0xFFFF0000)) >> 16;
+    vec3 block_pos;
+    block_pos.x = (face_data >> 28) & uint(0xF);
+    block_pos.y = (face_data >> 20) & uint(0xFF);
+    block_pos.z = (face_data >> 16) & uint(0xF);
+
+//    uint meta = uint(face_data.w);
+//    uint direction = (meta & uint(0xF000)) >> 12;
+//    uint id = (meta & uint(0xFFFF0000)) >> 16;
+    uint direction = (face_data >> 13) & uint(0x7);
+    uint id = (face_data >> 5) & uint(0xFF);
+    uint meta = (face_data >> 1) & uint(0xF);
+
+    id = id << 4;
+    id |= meta & uint(0xF);
+
     uint seed = id;
 
     vec3 pos = CVS[BLOCK_VERTEX_LUT[direction][face_vertex_num]] + block_pos;
+
+    gl_Position = mvp * vec4(pos.xyz, 1.0);
+    c_normal = NORMAL_LUT[direction];
 
     seed = (seed ^ uint(61)) ^ (seed >> 16);
     seed *= 9;
@@ -86,8 +101,5 @@ void main()
     seed ^= (seed >> 17);
     seed ^= (seed << 5);
     col.z = float(seed) / 4294967296.0;
-
-    gl_Position = mvp * vec4(pos.xyz, 1.0);
-    c_normal = NORMAL_LUT[direction];
     c_col = col.xyz;
 }

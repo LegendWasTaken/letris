@@ -17,6 +17,7 @@ let::bridge::render_data_cache::cached_chunk(uint64_t key) const noexcept {
 
 let::bridge::render_data::render_data(const let::world &world, render_data_cache &cache) {
     ZoneScopedN("render_data::render_data");
+    cache._gl_manager->bind(cache._meshing_program);
 
     for (const auto &render_chunk : world._chunks) {
         const auto key = chunk::key(render_chunk.second);
@@ -72,7 +73,6 @@ let::bridge::render_data::chunk_data let::bridge::render_data::data() {
 
 void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_cache::data &data, render_data_cache &cache) {
     ZoneScopedN("mesh chunk");
-    cache._gl_manager->bind(cache._meshing_program);
 
     auto total_visible = size_t(0);
     for (int i = 0; i < 16; i++)
@@ -105,7 +105,7 @@ void let::bridge::render_data::_mesh_chunk(const let::chunk &chunk, render_data_
         glGenBuffers(1, &indirect);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, faces);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, total_visible * sizeof(int32_t) * 4, nullptr, GL_STREAM_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, total_visible * sizeof(int32_t), nullptr, GL_STREAM_COPY);
 
         struct {
             uint32_t count = 0;

@@ -486,66 +486,67 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
 
                     auto faces = std::bitset<6>();
 
-                    for (auto i = 0; i < offsets.size(); i++) {
-                        const auto p = local_pos + offsets[i];
-                        if (0 <= p.x && p.x < 16 && 0 <= p.y && p.y < 256 && 0 <= p.z && p.z < 16) {
-                            const auto block_at = c.get_block(p.x, p.y, p.z);
-                            faces[i] = block_at.id() == 0;
-                        } else {
-                            let::chunk *offset = nullptr;
+                    if (b.id() != 0)
+                        for (auto i = 0; i < offsets.size(); i++) {
+                            const auto p = local_pos + offsets[i];
+                            if (0 <= p.x && p.x < 16 && 0 <= p.y && p.y < 256 && 0 <= p.z && p.z < 16) {
+                                const auto block_at = c.get_block(p.x, p.y, p.z);
+                                faces[i] = block_at.id() == 0;
+                            } else {
+                                let::chunk *offset = nullptr;
 
-                            if (offsets[i].z == 1)
-                                offset = side_chunks[0];
-                            if (offsets[i].z == -1)
-                                offset = side_chunks[1];
-                            if (offsets[i].x == 1)
-                                offset = side_chunks[2];
-                            if (offsets[i].x == -1)
-                                offset = side_chunks[3];
+                                if (offsets[i].z == 1)
+                                    offset = side_chunks[0];
+                                if (offsets[i].z == -1)
+                                    offset = side_chunks[1];
+                                if (offsets[i].x == 1)
+                                    offset = side_chunks[2];
+                                if (offsets[i].x == -1)
+                                    offset = side_chunks[3];
 
-                            if (offset == nullptr)
-                                faces[i] = true;
-                            else {
-                                const auto o_x = offset->x * 16;
-                                const auto o_z = offset->z * 16;
-                                auto local_offset = world_pos + offsets[i];
-                                local_offset.x &= 0xF;
-                                local_offset.z &= 0xF;
+                                if (offset == nullptr)
+                                    faces[i] = true;
+                                else {
+                                    const auto o_x = offset->x * 16;
+                                    const auto o_z = offset->z * 16;
+                                    auto local_offset = world_pos + offsets[i];
+                                    local_offset.x &= 0xF;
+                                    local_offset.z &= 0xF;
 
-                                auto face = block::face::north;
+                                    auto face = block::face::north;
 
-                                if (offsets[i].x == -1) {
-                                    face = block::face::west;
+                                    if (offsets[i].x == -1) {
+                                        face = block::face::west;
+                                    }
+                                    if (offsets[i].z == -1) {
+                                        face = block::face::north;
+                                    }
+                                    if (offsets[i].x == 1) {
+                                        face = block::face::east;
+                                    }
+                                    if (offsets[i].z == 1) {
+                                        face = block::face::south;
+                                    }
+    //                                spdlog::debug("compensated corrected {} {} {}", local_offset.x, local_offset.y, local_offset.z);
+
+                                    auto offset_block = offset->get_block(local_offset.x, local_offset.y, local_offset.z);
+                                    const auto offset_data = *offset_block.data();
+
+                                    faces[i] = offset_block.id() == 0;
+
+                                    if (b.id() == 0) {
+                                        offset_block.set_visible(face);
+                                    } else {
+                                        offset_block.set_unvisible(face);
+                                    }
+
+                                    if (offset_data != *offset_block.data())
+                                        offset->should_rerender = true;
+
+                                    offset->set_block(local_offset.x, local_offset.y, local_offset.z, offset_block);
                                 }
-                                if (offsets[i].z == -1) {
-                                    face = block::face::north;
-                                }
-                                if (offsets[i].x == 1) {
-                                    face = block::face::east;
-                                }
-                                if (offsets[i].z == 1) {
-                                    face = block::face::south;
-                                }
-//                                spdlog::debug("compensated corrected {} {} {}", local_offset.x, local_offset.y, local_offset.z);
-
-                                auto offset_block = offset->get_block(local_offset.x, local_offset.y, local_offset.z);
-                                const auto offset_data = *offset_block.data();
-
-                                faces[i] = offset_block.id() == 0;
-
-                                if (b.id() == 0) {
-                                    offset_block.set_visible(face);
-                                } else {
-                                    offset_block.set_unvisible(face);
-                                }
-
-                                if (offset_data != *offset_block.data())
-                                    offset->should_rerender = true;
-
-                                offset->set_block(local_offset.x, local_offset.y, local_offset.z, offset_block);
                             }
                         }
-                    }
 
                     for (int i = 0; i < 6; ++i) {
                         if (faces[i])
