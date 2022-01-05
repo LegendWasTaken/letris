@@ -11,7 +11,7 @@
 
 #include <renderer/renderer.h>
 
-#include <common/task_executor.h>
+#include <common/thread_pool.h>
 
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyOpenGL.hpp>
@@ -57,7 +57,7 @@ namespace let::bridge {
         [[nodiscard]] chunk_data data();
 
     private:
-        void _mesh_chunk(const let::chunk &chunk, render_data_cache::data &data, render_data_cache &cache);
+        [[nodiscard]] std::vector<glm::ivec4> _mesh_chunk(const let::chunk &chunk);
 
         std::unordered_map<uint64_t, render_data_cache::data> _chunks;
 

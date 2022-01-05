@@ -3,7 +3,7 @@
 size_t let::chunk_section::visible_faces() const noexcept {
     auto faces = size_t(0);
     for (auto block : blocks)
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 6 && block.id() != 0; i++)
             faces += block.visible(static_cast<block::face>(i));
     return faces;
 }

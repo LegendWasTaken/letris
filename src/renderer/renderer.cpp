@@ -79,12 +79,6 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
 
         for (auto i = 0; i < data.faces.size(); i++)
         {
-            if (!data.faces[i].has_value())
-            {
-                spdlog::debug("chunk had no face value");
-                continue;
-            }
-
             const auto model = glm::translate(glm::mat4(1.0f), glm::vec3(data.positions[i].x * 16.0f, 0.0f, data.positions[i].y * 16.0f));
             const auto mvp = proj * view_rot * model;
 

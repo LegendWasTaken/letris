@@ -23,7 +23,7 @@ namespace let {
 
         chunk_section() = default;
 
-        mutable bool should_rerender;
+        mutable bool should_rerender = false;
         std::array<let::block, 16 * 16 * 16> blocks;
     };
 

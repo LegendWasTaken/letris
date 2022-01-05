@@ -3,6 +3,8 @@
 int main() {
     ZoneScopedN("main");
 
+    auto pool = let::thread_pool(8);
+
     let::block block(0);
 
     sockpp::socket_initializer sockInit {};
