@@ -4,10 +4,14 @@ layout(std430, binding = 0) buffer faces_buffer {
     uint faces[];
 };
 
+layout(std430, binding = 1) buffer positions_buffer {
+    ivec4 positions[];
+};
+
 out vec3 c_col;
 out vec3 c_normal;
 
-uniform mat4 mvp;
+uniform mat4 vp;
 
 #define ITNNV 0
 #define ITNPV 1
@@ -59,7 +63,7 @@ void main()
     int face_idx = gl_VertexID / 6;
     int face_vertex_num = gl_VertexID % 6;
 
-    uint face_data = faces[face_idx];
+    uint face_data = faces[gl_DrawID * 196608 + face_idx];
 
     vec3 block_pos;
     block_pos.x = (face_data >> 28) & uint(0xF);
@@ -77,7 +81,14 @@ void main()
 
     vec3 pos = CVS[BLOCK_VERTEX_LUT[direction][face_vertex_num]] + block_pos;
 
-    gl_Position = mvp * vec4(pos.xyz, 1.0);
+    ivec4 chunk_pos = ivec4(positions[gl_DrawID].x * 16, 0, positions[gl_DrawID].y * 16, 1);
+    mat4 model = mat4(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        chunk_pos.x, chunk_pos.y, chunk_pos.z, 1
+    );
+    gl_Position = (vp * model) * vec4(pos.xyz, 1.0);
     c_normal = NORMAL_LUT[direction];
 
     seed = (seed ^ uint(61)) ^ (seed >> 16);

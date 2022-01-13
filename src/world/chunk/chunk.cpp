@@ -3,8 +3,9 @@
 size_t let::chunk_section::visible_faces() const noexcept {
     auto faces = size_t(0);
     for (auto block : blocks)
-        for (int i = 0; i < 6; i++)
-            faces += block.visible(static_cast<block::face>(i));
+        if (block.id() != 0)
+            for (int i = 0; i < 6; i++)
+                faces += block.visible(static_cast<block::face>(i));
     return faces;
 }
 
@@ -40,4 +41,10 @@ std::uint64_t let::chunk::key(std::int32_t x, std::int32_t z) noexcept {
     return
             ((static_cast<std::uint64_t>(x) << 32) & 0xFFFFFFFF00000000) |
             ((static_cast<std::uint64_t>(z) <<  0) & 0x00000000FFFFFFFF);
+}
+
+glm::ivec2 let::chunk::decompose_key(std::uint64_t key) noexcept {
+    auto x = key >> 32;
+    auto z = key & 0xFFFFFFFF;
+    return glm::ivec2(x, z);
 }

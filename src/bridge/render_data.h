@@ -20,45 +20,55 @@ namespace let::bridge {
 
     class render_data_cache {
     public:
-        struct data
-        {
-            glm::ivec2 pos;
-            std::optional<GLuint> faces;
-            std::optional<GLuint> indirect;
-        };
-
         explicit render_data_cache(opengl::manager *gl_manager);
 
         [[nodiscard]]
-        std::optional<data> cached_chunk(uint64_t key) const noexcept;
+        std::optional<uint32_t> allocate(uint64_t key);
 
     private:
         friend render_data;
 
         std::uint32_t _meshing_program;
 
-        std::unordered_map<uint64_t, data> _chunks;
+        GLuint _faces;
+        GLuint _indirects;
+        GLuint _positions;
+        GLuint _indices;
+
+
+        std::unordered_map<uint64_t, uint32_t> _chunks;
+        std::unordered_set<uint32_t> _allocated;
 
         let::opengl::manager *_gl_manager;
     };
 
     class render_data {
     public:
-        explicit render_data(const let::world &world, render_data_cache &cache);
+        explicit render_data(let::world &world, render_data_cache &cache);
 
         struct chunk_data
         {
-            std::vector<glm::ivec2> positions;
-            std::vector<std::optional<GLuint>> faces;
-            std::vector<std::optional<GLuint>> indirects;
+            std::optional<uint64_t> chunk_count;
+            std::optional<GLuint> positions;
+            std::optional<GLuint> faces;
+            std::optional<GLuint> indirects;
+            std::optional<GLuint> indices;
         };
         [[nodiscard]] chunk_data data();
 
     private:
-        void _mesh_chunk(const let::chunk &chunk, render_data_cache::data &data, render_data_cache &cache);
+        struct to_render {
+            let::chunk *chunk;
+            uint32_t index;
+        };
 
-        std::unordered_map<uint64_t, render_data_cache::data> _chunks;
+        void _mesh_chunks(std::span<to_render> chunks, render_data_cache &cache, GLuint faces, GLuint indirects);
 
+        std::optional<uint64_t> _chunk_count;
+        std::optional<GLuint> _positions;
+        std::optional<GLuint> _faces;
+        std::optional<GLuint> _indirects;
+        std::optional<GLuint> _indices;
     };
 }
 

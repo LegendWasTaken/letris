@@ -7,8 +7,7 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
     while (buffer.has_left()) {
         const auto header = let::packets::reader::peek_header(buffer);
 
-        switch (header.id.val)
-        {
+        switch (header.id.val) {
             case 0x0: {
                 const auto packet = let::packets::read<packets::state::play>::keep_alive(buffer);
 
@@ -26,7 +25,8 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                 for (auto letter : client_brand)
                     brand_bytes.push_back(std::byte(letter));
 
-                let::packets::write<packets::state::play>::client_settings(outgoing, "en_GB", std::byte(8), std::byte(0), false, 0);
+                let::packets::write<packets::state::play>::client_settings(outgoing, "en_GB", std::byte(8),
+                                                                           std::byte(0), false, 0);
                 let::packets::write<packets::state::play>::plugin_message(outgoing, "minecraft:brand", brand_bytes);
                 break;
             }
@@ -66,12 +66,9 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
             case 0x8: {
                 const auto packet = let::packets::read<packets::state::play>::player_pos_and_look(buffer);
 
-                if (_entities.any_of<entity::connected>(_player))
-                {
+                if (_entities.any_of<entity::connected>(_player) || !_entities.valid(_player)) {
                     _entities.get<entity::position>(_player).data = glm::vec3(packet.x, packet.y, packet.z);
-                }
-                else
-                {
+                } else {
                     _entities.emplace<entity::connected>(_player);
                     _entities.emplace<entity::position>(_player, glm::vec3(packet.x, packet.y, packet.z));
                 }
@@ -231,8 +228,7 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                 for (const auto &chunk : packet.chunks)
                     chunks_added.emplace_back(chunk.x, chunk.z);
 
-                for (auto &chunk : packet.chunks)
-                {
+                for (auto &chunk : packet.chunks) {
                     const auto key = let::chunk::key(chunk);
                     const auto x = chunk.x;
                     const auto z = chunk.z;
@@ -240,8 +236,7 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                     _update_chunk_visibility(x, z);
                 }
 
-                for (const auto added : chunks_added)
-                {
+                for (const auto added : chunks_added) {
 
                 }
 
@@ -424,7 +419,6 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
     }
 
 
-
     for (auto player : _entities.view<let::entity::position, let::entity::connected>()) {
         let::packets::write<packets::state::play>::player(outgoing, true);
     }
@@ -433,12 +427,13 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 uint64_t let::world::_create_entity_with_id(int server_id) {
     const auto local_id = _entities.create(server_id);
     if (local_id != server_id)
-        LET_EXCEPTION(exception::source_type::world, "Failed to create entity with ID: {}, got {}", server_id, local_id);
+        LET_EXCEPTION(exception::source_type::world, "Failed to create entity with ID: {}, got {}", server_id,
+                      local_id);
     return local_id;
 }
 
 glm::vec3 let::world::world_pos() const {
-    if (_entities.any_of<entity::position>(_player))
+    if (_entities.valid(_player) && _entities.any_of<entity::position>(_player))
         return _entities.get<entity::position>(_player).data;
     else
         return glm::vec3(0, 0, 0);
@@ -449,16 +444,15 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
     if (it != _chunks.end()) {
         auto &c = it->second;
 
-        auto side_chunks = std::array<let::chunk*, 4>();
+        auto side_chunks = std::array<let::chunk *, 4>();
         const auto chunk_offsets = std::array<glm::ivec2, 4>({
-            glm::ivec2(0,  1),
-            glm::ivec2(0, -1),
-            glm::ivec2( 1, 0),
-            glm::ivec2(-1, 0)
-        });
+                                                                     glm::ivec2(0, 1),
+                                                                     glm::ivec2(0, -1),
+                                                                     glm::ivec2(1, 0),
+                                                                     glm::ivec2(-1, 0)
+                                                             });
 
-        for (auto i = 0; i < 4; i++)
-        {
+        for (auto i = 0; i < 4; i++) {
             const auto side_it = _chunks.find(chunk::key(c.x + chunk_offsets[i].x, c.z + chunk_offsets[i].y));
             side_chunks[i] = side_it == _chunks.end() ? nullptr : &side_it->second;
         }
@@ -473,7 +467,7 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
                     const auto local_pos = glm::ivec3(bx, by, bz);
                     const auto world_pos = glm::ivec3(c.x * 16 + bx, by, c.z * 16 + bz);
                     const auto offsets = std::array<glm::ivec3, 6>({
-                                                                           glm::ivec3(0, 0,  1),
+                                                                           glm::ivec3(0, 0, 1),
                                                                            glm::ivec3(0, 0, -1),
                                                                            glm::ivec3(+1, 0, 0),
                                                                            glm::ivec3(-1, 0, 0),
@@ -486,74 +480,75 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
 
                     auto faces = std::bitset<6>();
 
-                    if (b.id() != 0)
-                        for (auto i = 0; i < offsets.size(); i++) {
-                            const auto p = local_pos + offsets[i];
-                            if (0 <= p.x && p.x < 16 && 0 <= p.y && p.y < 256 && 0 <= p.z && p.z < 16) {
-                                const auto block_at = c.get_block(p.x, p.y, p.z);
-                                faces[i] = block_at.id() == 0;
-                            } else {
-                                let::chunk *offset = nullptr;
+                    for (auto i = 0; i < offsets.size(); i++) {
+                        const auto p = local_pos + offsets[i];
+                        if (0 <= p.x && p.x < 16 && 0 <= p.y && p.y < 256 && 0 <= p.z && p.z < 16) {
+                            const auto block_at = c.get_block(p.x, p.y, p.z);
+                            faces[i] = block_at.id() == 0;
+                        } else {
+                            let::chunk *offset = nullptr;
 
-                                if (offsets[i].z == 1)
-                                    offset = side_chunks[0];
-                                if (offsets[i].z == -1)
-                                    offset = side_chunks[1];
-                                if (offsets[i].x == 1)
-                                    offset = side_chunks[2];
-                                if (offsets[i].x == -1)
-                                    offset = side_chunks[3];
+                            if (offsets[i].z == 1)
+                                offset = side_chunks[0];
+                            if (offsets[i].z == -1)
+                                offset = side_chunks[1];
+                            if (offsets[i].x == 1)
+                                offset = side_chunks[2];
+                            if (offsets[i].x == -1)
+                                offset = side_chunks[3];
 
-                                if (offset == nullptr)
-                                    faces[i] = true;
-                                else {
-                                    const auto o_x = offset->x * 16;
-                                    const auto o_z = offset->z * 16;
-                                    auto local_offset = world_pos + offsets[i];
-                                    local_offset.x &= 0xF;
-                                    local_offset.z &= 0xF;
+                            if (offset == nullptr)
+                                faces[i] = true;
+                            else {
+                                const auto o_x = offset->x * 16;
+                                const auto o_z = offset->z * 16;
+                                auto local_offset = world_pos + offsets[i];
+                                local_offset.x &= 0xF;
+                                local_offset.z &= 0xF;
 
-                                    auto face = block::face::north;
+                                auto face = block::face::north;
 
-                                    if (offsets[i].x == -1) {
-                                        face = block::face::west;
-                                    }
-                                    if (offsets[i].z == -1) {
-                                        face = block::face::north;
-                                    }
-                                    if (offsets[i].x == 1) {
-                                        face = block::face::east;
-                                    }
-                                    if (offsets[i].z == 1) {
-                                        face = block::face::south;
-                                    }
-    //                                spdlog::debug("compensated corrected {} {} {}", local_offset.x, local_offset.y, local_offset.z);
-
-                                    auto offset_block = offset->get_block(local_offset.x, local_offset.y, local_offset.z);
-                                    const auto offset_data = *offset_block.data();
-
-                                    faces[i] = offset_block.id() == 0;
-
-                                    if (b.id() == 0) {
-                                        offset_block.set_visible(face);
-                                    } else {
-                                        offset_block.set_unvisible(face);
-                                    }
-
-                                    if (offset_data != *offset_block.data())
-                                        offset->should_rerender = true;
-
-                                    offset->set_block(local_offset.x, local_offset.y, local_offset.z, offset_block);
+                                if (offsets[i].x == -1) {
+                                    face = block::face::west;
                                 }
+                                if (offsets[i].z == -1) {
+                                    face = block::face::north;
+                                }
+                                if (offsets[i].x == 1) {
+                                    face = block::face::east;
+                                }
+                                if (offsets[i].z == 1) {
+                                    face = block::face::south;
+                                }
+                                //                                spdlog::debug("compensated corrected {} {} {}", local_offset.x, local_offset.y, local_offset.z);
+
+                                auto offset_block = offset->get_block(local_offset.x, local_offset.y, local_offset.z);
+                                const auto offset_data = *offset_block.data();
+
+                                faces[i] = offset_block.id() == 0;
+
+                                if (b.id() == 0) {
+                                    offset_block.set_visible(face);
+                                } else {
+                                    offset_block.set_unvisible(face);
+                                }
+
+                                if (offset_data != *offset_block.data())
+                                    offset->should_rerender = true;
+
+                                offset->set_block(local_offset.x, local_offset.y, local_offset.z, offset_block);
                             }
                         }
+                    }
+
+                    if (b.id() == 0)
+                        for (auto i = 0; i < 6; i++)
+                            faces[i] = false;
 
                     for (int i = 0; i < 6; ++i) {
-                        if (faces[i])
-                        {
+                        if (faces[i]) {
                             b.set_visible(static_cast<block::face>(i));
-                        }
-                        else
+                        } else
                             b.set_unvisible(static_cast<block::face>(i));
                     }
                     c.set_block(bx, by, bz, b);

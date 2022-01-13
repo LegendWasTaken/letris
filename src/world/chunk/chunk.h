@@ -4,6 +4,8 @@
 #include <array>
 #include <memory>
 
+#include <glm/glm.hpp>
+
 #include <world/block.h>
 
 #include <tracy/Tracy.hpp>
@@ -37,6 +39,8 @@ namespace let {
         [[nodiscard]] static std::uint64_t key(const chunk &chunk) noexcept;
 
         [[nodiscard]] static std::uint64_t key(std::int32_t x, std::int32_t z) noexcept;
+
+        [[nodiscard]] static glm::ivec2 decompose_key(std::uint64_t key) noexcept;
 
         // Todo: Make this private and make a method in the world that allows for cached block updates
         mutable bool should_rerender;

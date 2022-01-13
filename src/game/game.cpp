@@ -175,8 +175,8 @@ void let::game::_tick(double dt) {
         const auto delta = pos - _previous_mouse_pos;
         _previous_mouse_pos = pos;
 
-        _rotation.x += delta.y * 0.0004;
-        _rotation.y += delta.x * 0.0004;
+        _rotation.x += delta.y * 0.0004f;
+        _rotation.y += delta.x * 0.0004f;
 
         const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
         // Todo: move this logic of moving into the world
@@ -190,9 +190,10 @@ void let::game::_tick(double dt) {
         _gpu.texture.render_target = _renderer->render({
                                                                .offset = world_pos,
                                                                .rotation = rotation,
+                                                               .chunk_count = chunk_data.chunk_count,
                                                                .positions = chunk_data.positions,
                                                                .faces = chunk_data.faces,
-                                                               .indirects = chunk_data.indirects
+                                                               .indirects = chunk_data.indirects,
                                                        });
     } else {
         _window->mouse().show();

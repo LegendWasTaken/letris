@@ -4,19 +4,26 @@ layout(std430, binding = 0) buffer faces_buffer {
     uint faces[];
 };
 
-layout (std430, binding = 1) buffer counter_buffer {
+struct indirect_data {
     uint vertex_count;
     uint instanceCount;
     uint FirstIndex;
-    int baseIndex;
-    uint reservedMustBeZero;
+    uint baseIndex;
+};
+
+layout (std430, binding = 1) buffer counter_buffer {
+    indirect_data indirects[];
 };
 
 layout (std430, binding = 2) buffer block_buffer {
-    uint blocks[16 * 256 * 16];
+    uint blocks[];
 };
 
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+layout (std430, binding = 3) buffer index_buffer {
+    uint chunk_face_indices[];
+};
+
+layout(local_size_x = 16, local_size_y = 8, local_size_z = 8) in;
 
 #define FN 0
 #define FS 1
@@ -91,7 +98,13 @@ shared uint shared_buffer_index = 0;
 
 uint get_block(ivec3 bp)
 {
-    return blocks[(bp.y & 0xFF) << 8 | (bp.z & 0xF) << 4 | (bp.x & 0xF)];
+    ivec3 block_pos;
+    block_pos.x = bp.x % 16;
+    block_pos.y = bp.y;
+    block_pos.z = bp.z;
+    int offset = int(bp.x / 16);
+
+    return blocks[(offset * 16 * 256 * 16) + ((block_pos.y & 0xFF) << 8 | (block_pos.z & 0xF) << 4 | (block_pos.x & 0xF))];
 }
 
 void main() {
@@ -103,9 +116,13 @@ void main() {
 
     uint group_local_offset = atomicAdd(shared_vertex_count, total_face_count * 6) / 6;
     barrier();
-    if (gl_LocalInvocationIndex == 0)
-        shared_buffer_index = atomicAdd(vertex_count, shared_vertex_count) / 6;
+    memoryBarrierShared();
+    if (gl_LocalInvocationIndex == 0) {
+        uint index = chunk_face_indices[bp.x / 16] / 196608;
+        shared_buffer_index = atomicAdd(indirects[index].vertex_count, shared_vertex_count) / 6;
+    }
     barrier();
+    memoryBarrierShared();
 
-    write_faces(shared_buffer_index + group_local_offset, block, bp);
+    write_faces(shared_buffer_index + group_local_offset + chunk_face_indices[bp.x / 16], block, bp);
 }

@@ -28,23 +28,23 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
         LET_EXCEPTION(exception::source_type::render, "Framebuffer could not be completed");
 
     _triangle_program = _gl_manager->create_program({
-        "shaders/triangle/shader.frag",
-        "shaders/triangle/shader.vert"
-    });
+                                                            "shaders/triangle/shader.frag",
+                                                            "shaders/triangle/shader.vert"
+                                                    });
 
     _post_processing_programs.sky = _gl_manager->create_program({
-        "shaders/post/sky/shader.comp"
-    });
+                                                                        "shaders/post/sky/shader.comp"
+                                                                });
 
     _post_processing_programs.tonemap = _gl_manager->create_program({
-        "shaders/post/tonemap/shader.comp"
-    });
+                                                                            "shaders/post/tonemap/shader.comp"
+                                                                    });
 
     auto vertices = std::array<float, 9>({
-       -0.5, -0.5, -5.0,
-        0.5, -0.5, -5.0,
-        0.0,  0.5, -5.0
-    });
+                                                 -0.5, -0.5, -5.0,
+                                                 0.5, -0.5, -5.0,
+                                                 0.0, 0.5, -5.0
+                                         });
 
     glGenBuffers(1, &_tri.vbo);
     glGenBuffers(1, &_tri.ebo);
@@ -61,71 +61,61 @@ let::renderer::renderer(std::uint16_t width, std::uint16_t height, let::opengl::
 
 std::uint32_t let::renderer::render(const renderer::render_data &data) {
     ZoneScopedN("renderer::render");
-//    if (!data.vertices.empty())
-//    {
-        glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
-        glEnable(GL_DEPTH_TEST);
-//        glEnable(GL_CULL_FACE);
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer.handle);
+    glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    const auto view = glm::translate(glm::mat4(1.0f), -data.offset);
+    const auto view_rot = data.rotation * view;
+
+    const auto proj = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100000.f);
+
+    if (data.positions.has_value()) {
+        auto vp = proj * view_rot;
+
 
         _gl_manager->bind(_triangle_program);
+        _gl_manager->uniform("vp", vp);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, data.indirects.value());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data.faces.value());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, data.positions.value());
 
-        const auto view = glm::translate(glm::mat4(1.0f), -data.offset);
-        const auto view_rot = data.rotation * view;
+        TracyGpuZone("renderer::draw_arrays");
+        glMultiDrawArraysIndirect(GL_TRIANGLES, (GLvoid *) 0, 440, 0);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Apply post processing
+    _gl_manager->bind(_post_processing_programs.sky);
 
-        const auto proj = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100000.f);
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(data.rotation, scale, rotation, translation, skew, perspective);
+    auto rotations = glm::vec2(glm::eulerAngles(rotation));
+    const auto inv_proj_view = glm::mat4(glm::inverse(proj * view_rot));
 
-        for (auto i = 0; i < data.faces.size(); i++)
-        {
-            if (!data.faces[i].has_value())
-            {
-                spdlog::debug("chunk had no face value");
-                continue;
-            }
+    _gl_manager->uniform("rotation", rotations);
+    _gl_manager->uniform("invProjView", inv_proj_view);
 
-            const auto model = glm::translate(glm::mat4(1.0f), glm::vec3(data.positions[i].x * 16.0f, 0.0f, data.positions[i].y * 16.0f));
-            const auto mvp = proj * view_rot * model;
-
-            auto exists = std::uint32_t();
-
-            _gl_manager->uniform("mvp", mvp);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data.faces[i].value());
-            glBindBuffer(GL_DRAW_INDIRECT_BUFFER , data.indirects[i].value());
-
-            TracyGpuZone("renderer::draw_arrays");
-            glDrawArraysIndirect(GL_TRIANGLES, nullptr);
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Apply post processing
-        _gl_manager->bind(_post_processing_programs.sky);
-
-        glm::vec3 scale;
-        glm::quat rotation;
-        glm::vec3 translation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(data.rotation, scale, rotation, translation, skew, perspective);
-        auto rotations = glm::vec2(glm::eulerAngles(rotation));
-        const auto inv_proj_view = glm::mat4(glm::inverse(proj * view_rot));
-
-        _gl_manager->uniform("rotation", rotations);
-         _gl_manager->uniform("invProjView", inv_proj_view);
-
+    {
         glActiveTexture(GL_TEXTURE0);
         glBindImageTexture(0, _framebuffer.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        TracyGpuZone("post::sky");
         glDispatchCompute(glm::ceil(1920.0 / 32.0), glm::ceil(1080.0 / 32.0), 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
 
-        _gl_manager->bind(_post_processing_programs.tonemap);
+    _gl_manager->bind(_post_processing_programs.tonemap);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindImageTexture(0, _framebuffer.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glDispatchCompute(glm::ceil(1920.0 / 32.0), glm::ceil(1080.0 / 32.0), 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-//    }
-
+    glActiveTexture(GL_TEXTURE0);
+    glBindImageTexture(0, _framebuffer.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    TracyGpuZone("post::tonemap");
+    glDispatchCompute(glm::ceil(1920.0 / 32.0), glm::ceil(1080.0 / 32.0), 1);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
     return _framebuffer.texture;
 }
