@@ -12,7 +12,7 @@ let::bridge::render_data_cache::render_data_cache(opengl::manager *gl_manager) :
 
     glGenBuffers(1, &_faces);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, _faces);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 196'608 * 440 * sizeof(uint32_t), nullptr, GL_STREAM_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, 196'608 * 1000 * sizeof(uint32_t), nullptr, GL_STREAM_COPY);
 
     struct indirect {
         uint32_t vertex_count = 0;
@@ -20,30 +20,30 @@ let::bridge::render_data_cache::render_data_cache(opengl::manager *gl_manager) :
         uint32_t first_index = 0;
         uint32_t base_index = 0;
     };
-    auto indirects = std::vector<indirect>(440);
+    auto indirects = std::vector<indirect>(1000);
     glGenBuffers(1, &_indirects);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, _indirects);
     glBufferData(GL_SHADER_STORAGE_BUFFER, indirects.size() * sizeof(indirect), indirects.data(), GL_STREAM_COPY);
 
     glGenBuffers(1, &_positions);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, _positions);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 440 * sizeof(glm::ivec4), nullptr, GL_STREAM_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, 1000 * sizeof(glm::ivec4), nullptr, GL_STREAM_COPY);
 
     glGenBuffers(1, &_indices);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, _indices);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 440 * sizeof(uint32_t), nullptr, GL_STREAM_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, 1000 * sizeof(uint32_t), nullptr, GL_STREAM_COPY);
 }
 
 std::optional<uint32_t> let::bridge::render_data_cache::allocate(uint64_t key) {
     auto it = _chunks.find(key);
 
-    if (_chunks.size() == 440 || it != _chunks.end())
+    if (_chunks.size() == 1000 || it != _chunks.end())
     {
 //        spdlog::debug("already allocated {}", key);
         return std::nullopt;
     }
 
-    for (auto i = 0; i < 440; i++) {
+    for (auto i = 0; i < 1000; i++) {
         const auto allocation = i * 196608;
         if (_allocated.find(allocation) == _allocated.end())
         {
@@ -61,7 +61,6 @@ let::bridge::render_data::render_data(let::world &world, render_data_cache &cach
     cache._gl_manager->bind(cache._meshing_program);
     auto to_update = std::vector<to_render>();
 
-    if (world._chunks.size() == 440)
     for (auto &render_chunk : world._chunks) {
         const auto key = chunk::key(render_chunk.second);
 
@@ -97,8 +96,8 @@ let::bridge::render_data::render_data(let::world &world, render_data_cache &cach
         _mesh_chunks(to_update, cache, cache._faces, cache._indirects);
     }
 
-    auto positions = std::vector<glm::ivec4>(440);
-    auto indices = std::vector<uint32_t>(440);
+    auto positions = std::vector<glm::ivec4>(1000);
+    auto indices = std::vector<uint32_t>(1000);
     for (auto &it : cache._chunks)
     {
         auto pos = chunk::decompose_key(it.first);

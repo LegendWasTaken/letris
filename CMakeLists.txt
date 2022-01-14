@@ -72,7 +72,7 @@ add_library(Letris_lib
         src/common/exception.cpp
 
         # Renderer
-        src/renderer/renderer.cpp src/common/timer.cpp src/common/timer.h src/world/block.h)
+        src/renderer/renderer.cpp src/common/timer.cpp src/common/timer.h src/world/block.h src/common/rolling_buffer.h)
 
 if (LET_USE_TRACY)
     message("Tracy has been enabled")

@@ -2,6 +2,7 @@
 #define LETRIS_WORLD_H
 
 #include <common/network/packets.h>
+#include <common/rolling_buffer.h>
 #include <common/exception.h>
 
 #include <world/entities/components.h>
@@ -26,6 +27,8 @@ namespace let {
         world() = default;
 
         void process_packets(let::network::byte_buffer &buffer, let::network::byte_buffer &outgoing);
+
+        void move_player(const glm::vec3 &translation);
 
         [[nodiscard]] glm::vec3 world_pos() const;
 

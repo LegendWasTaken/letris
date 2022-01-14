@@ -41,13 +41,14 @@ namespace let {
         std::string _server_to_join;
 
         glm::vec3 _world_pos {};
-        glm::ivec2 _previous_mouse_pos;
-        glm::vec2 _rotation;
+        glm::ivec2 _previous_mouse_pos {};
+        glm::vec2 _rotation {};
 
         struct {
             let::main_menu main;
             let::graphics_menu graphics;
             let::multiplayer_menu multiplayer;
+            let::debug_menu debug;
         } _menus;
 
         struct {

@@ -11,7 +11,7 @@ add_executable(letris_tests
         network/decoder.cpp
         network/encoder.cpp
 
-        common/exception.cpp common/tasks.cpp)
+        common/exception.cpp common/tasks.cpp common/rolling_buffer.cpp)
 
 Include(FetchContent)
 

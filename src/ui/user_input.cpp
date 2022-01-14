@@ -314,3 +314,16 @@ void let::multiplayer_menu::on_server_data_request(
 void let::multiplayer_menu::on_server_click(const std::function<void(ultralight::JSArgs)> &server_click) {
     _server_click_callback.bind(server_click);
 }
+
+let::debug_menu::debug_menu() {
+
+}
+
+let::input_screen::register_data let::debug_menu::manifest() const noexcept {
+    ZoneScopedN("menu::debug::manifest");
+    auto data = register_data();
+
+    data.html_url = "file:///" + std::string(LETRIS_ASSET_PATH) + "/html/debug_menu.html";
+
+    return data;
+}

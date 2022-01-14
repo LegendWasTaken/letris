@@ -16,8 +16,8 @@ void let::timer::frame_end() {
     const Duration frame_time_duration = frame_end_time - frame_start_time;
     const auto frame_time = frame_time_duration.count();
 
-    fastest_frame = std::fmin(frame_time, fastest_frame);  // This code works, if you're looking in here
-    slowest_frame = std::fmax(frame_time, slowest_frame);  // to find a bug, this is not where it is...
+    fastest_frame = std::fmin(frame_time, fastest_frame);
+    slowest_frame = std::fmax(frame_time, slowest_frame);
 
     std::rotate(past_frame_times.begin(), past_frame_times.begin() + 1, past_frame_times.end());
     past_frame_times.back() = frame_time;
@@ -35,5 +35,5 @@ double let::timer::time_since_start() const noexcept {
 }
 
 double let::timer::since_last_frame() const noexcept {
-    return Duration(std::chrono::high_resolution_clock::now() - frame_start_time).count();
+    return Duration(std::chrono::high_resolution_clock::now() - frame_end_time).count();
 }

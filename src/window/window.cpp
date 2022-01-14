@@ -99,19 +99,17 @@ void let::window::display_frame(let::window::render_targets targets) {
     TracyGpuCollect;
     glfwSwapBuffers(_window);
 
-    glfwSetInputMode(_window, GLFW_CURSOR, _mouse.hidden() ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-
     glfwPollEvents();
+
+    glfwSetInputMode(_window, GLFW_CURSOR, _mouse.hidden() ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
 void let::window::_glfw_cursor_position_callback(GLFWwindow *window, double x, double y) {
-    ZoneScopedN("window::cursor_position_callback");
     auto user_window = static_cast<let::window *>(glfwGetWindowUserPointer(window));
     user_window->_mouse.set_position({x, y});
 }
 
 void let::window::_glfw_mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-    ZoneScopedN("window::mouse_button_callback");
     auto user_window = static_cast<let::window *>(glfwGetWindowUserPointer(window));
 
     auto mouse_button = let::logical::mouse::button::left;

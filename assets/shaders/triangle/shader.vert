@@ -81,22 +81,16 @@ void main()
 
     vec3 pos = CVS[BLOCK_VERTEX_LUT[direction][face_vertex_num]] + block_pos;
 
-    ivec4 chunk_pos = ivec4(positions[gl_DrawID].x * 16, 0, positions[gl_DrawID].y * 16, 1);
-    mat4 model = mat4(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        chunk_pos.x, chunk_pos.y, chunk_pos.z, 1
-    );
-    gl_Position = (vp * model) * vec4(pos.xyz, 1.0);
+    vec3 chunk_pos = vec3(positions[gl_DrawID].xyy) * vec3(16.0, 0.0, 16.0);
+    gl_Position = vp * vec4(pos + chunk_pos, 1.0);
     c_normal = NORMAL_LUT[direction];
+    vec3 col = vec3(0.2f);
 
     seed = (seed ^ uint(61)) ^ (seed >> 16);
     seed *= 9;
     seed = seed ^ (seed >> 4);
     seed *= 0x27d4eb2d;
     seed = seed ^ (seed >> 15);
-    vec3 col;
     seed ^= (seed << 13);
     seed ^= (seed >> 17);
     seed ^= (seed << 5);

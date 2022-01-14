@@ -137,6 +137,15 @@ namespace let {
         void on_main_menu_click(const std::function<void()> &callback);
     };
 
+    class debug_menu : public input_screen {
+    private:
+
+    public:
+        debug_menu();
+
+        [[nodiscard]] input_screen::register_data manifest() const noexcept override;
+    };
+
     class user_input_renderer {
     public:
         user_input_renderer(ultralight::Ref<ultralight::Renderer> *renderer, glm::ivec2 size);

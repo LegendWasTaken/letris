@@ -175,14 +175,15 @@ void let::game::_tick(double dt) {
         const auto delta = pos - _previous_mouse_pos;
         _previous_mouse_pos = pos;
 
-        _rotation.x += delta.y * 0.0004f;
-        _rotation.y += delta.x * 0.0004f;
+        _rotation.x += delta.y * 1.0f * dt;
+        _rotation.y += delta.x * 1.0f * dt;
 
         const auto rotation = glm::eulerAngleXY(_rotation.x, _rotation.y);
         // Todo: move this logic of moving into the world
-        _world_pos += glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(1.1);
+        auto translation = glm::vec3(glm::inverse(rotation) * glm::vec4(movement_direction, 1.0f)) * glm::vec3(1.1);
 
-        const auto world_pos = _world_pos + _world.value().world_pos() + glm::vec3(0, 500, 0);
+        _world.value().move_player(translation);
+        const auto world_pos = _world.value().world_pos();
 
         auto render_data = let::bridge::render_data(_world.value(), *_render_cache);
         auto chunk_data = render_data.data();

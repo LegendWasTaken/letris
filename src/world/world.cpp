@@ -6,6 +6,8 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
 
     while (buffer.has_left()) {
         const auto header = let::packets::reader::peek_header(buffer);
+        static auto previous_packets = let::rolling_buffer<int32_t, 10>();
+        previous_packets.push_back(header.id.val);
 
         switch (header.id.val) {
             case 0x0: {
@@ -25,7 +27,7 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                 for (auto letter : client_brand)
                     brand_bytes.push_back(std::byte(letter));
 
-                let::packets::write<packets::state::play>::client_settings(outgoing, "en_GB", std::byte(8),
+                let::packets::write<packets::state::play>::client_settings(outgoing, "en_GB", std::byte(14),
                                                                            std::byte(0), false, 0);
                 let::packets::write<packets::state::play>::plugin_message(outgoing, "minecraft:brand", brand_bytes);
                 break;
@@ -413,14 +415,20 @@ void let::world::process_packets(let::network::byte_buffer &buffer, let::network
                 break;
             }
 
-            default:
+            default: {
+                spdlog::debug("PACKET ERROR TRACE");
+                for (auto i = 0; i < previous_packets.size(); i++)
+                    spdlog::debug("ID 0x{:x}", previous_packets[i]);
                 LET_EXCEPTION(exception::source_type::network, "Unimplemented packet: {}", header.id.val);
+            }
         }
     }
 
 
     for (auto player : _entities.view<let::entity::position, let::entity::connected>()) {
         let::packets::write<packets::state::play>::player(outgoing, true);
+        auto position = _entities.get<entity::position>(player).data;
+        let::packets::write<packets::state::play>::player_position(outgoing, position.x, position.y, position.z, true);
     }
 }
 
@@ -430,6 +438,14 @@ uint64_t let::world::_create_entity_with_id(int server_id) {
         LET_EXCEPTION(exception::source_type::world, "Failed to create entity with ID: {}, got {}", server_id,
                       local_id);
     return local_id;
+}
+
+void let::world::move_player(const glm::vec3 &translation) {
+    if (_entities.valid(_player) && _entities.any_of<entity::position>(_player))
+    {
+        auto &position = _entities.get<entity::position>(_player);
+        position.data += translation;
+    }
 }
 
 glm::vec3 let::world::world_pos() const {
@@ -541,7 +557,7 @@ void let::world::_update_chunk_visibility(int32_t x, int32_t z) {
                         }
                     }
 
-                    if (b.id() == 0)
+                    if (b.id() == 0 || by == 0)
                         for (auto i = 0; i < 6; i++)
                             faces[i] = false;
 

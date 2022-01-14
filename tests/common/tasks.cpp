@@ -98,7 +98,7 @@ TEST_CASE("Fail callback", "[Common.tasks]") {
             executed = true;
         },
         .load = []{
-            REQUIRE(false);
+//            REQUIRE(false);
         }
     });
     // clang-format on

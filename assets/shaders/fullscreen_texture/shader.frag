@@ -8,7 +8,7 @@ layout (binding = 0) uniform sampler2D gui;
 
 layout (binding = 1) uniform sampler2D rendered;
 
-layout (location = 0) uniform int has_world;
+uniform bool has_world;
 
 void main()
 {

@@ -492,6 +492,7 @@ let::packets::read<let::packets::state::play>::entity_velocity(let::network::byt
     let::network::decoder::read(buffer, packet.x);
     let::network::decoder::read(buffer, packet.y);
     let::network::decoder::read(buffer, packet.z);
+    spdlog::debug("{} {} {} {}", packet.entity_id.val, packet.x, packet.y, packet.z);
 
     return packet;
 }
@@ -717,8 +718,6 @@ let::packets::read<let::packets::state::play>::chunk_data(let::network::byte_buf
             {
                 const auto block = reinterpret_cast<uint16_t const*>(blocks.data())[k];
                 section->blocks[k] = let::block(block);
-                for (auto l = 0; l < 6; l++)
-                    section->blocks[k].set_visible(static_cast<block::face>(l));
             }
 
             chunk.section_at(j) = std::move(section);
@@ -741,7 +740,11 @@ let::packets::read<let::packets::state::play>::chunk_data(let::network::byte_buf
                 buffer.next_bytes(2048);
         }
 
-    buffer.next_bytes(256);
+
+    if (ground_up && primary_bitmask == 0)
+        spdlog::debug("aaaaa {}", chunk_data_size.val);
+    else
+        spdlog::debug("bbbbb {} 0b{:b}", chunk_data_size.val, primary_bitmask);
 
     return packet;
 }
@@ -879,6 +882,7 @@ let::packets::read<let::packets::state::play>::map_chunk_bulk(let::network::byte
 
         for (auto j = 0; j < 16; j++)
         {
+            // block light data is always sent
             const auto is_set = entry.mask & (1 << j);
             if (is_set)
                 buffer.next_bytes(2048);
@@ -891,6 +895,7 @@ let::packets::read<let::packets::state::play>::map_chunk_bulk(let::network::byte
                 if (is_set)
                     buffer.next_bytes(2048);
             }
+
 
         buffer.next_bytes(256);
 

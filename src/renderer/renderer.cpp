@@ -84,7 +84,7 @@ std::uint32_t let::renderer::render(const renderer::render_data &data) {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, data.positions.value());
 
         TracyGpuZone("renderer::draw_arrays");
-        glMultiDrawArraysIndirect(GL_TRIANGLES, (GLvoid *) 0, 440, 0);
+        glMultiDrawArraysIndirect(GL_TRIANGLES, (GLvoid *) 0, 1000, 0);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // Apply post processing
